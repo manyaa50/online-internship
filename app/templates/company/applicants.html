@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Review Candidates - SmartIntern{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 pb-2 border-bottom">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-people-fill text-primary me-2"></i>Candidate Applications</h3>
+            <p class="text-muted small mb-0">Review profiles, evaluate qualifications, and update candidate hiring status</p>
+        </div>
+        <div>
+            <a href="{{ url_for('company.manage_internships') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-briefcase me-1"></i>All Postings
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="card p-3 border-0 shadow-sm mb-4">
+        <form method="GET" action="{{ url_for('company.applicants') }}" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label small fw-semibold">Filter by Internship Role</label>
+                <select class="form-select" name="internship_id">
+                    <option value="">All Postings ({{ internships|length }})</option>
+                    {% for intern in internships %}
+                        <option value="{{ intern.id }}" {% if selected_internship == intern.id %}selected{% endif %}>{{ intern.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold">Filter by Application Status</label>
+                <select class="form-select" name="status">
+                    <option value="">All Statuses</option>
+                    <option value="Applied" {% if selected_status == 'Applied' %}selected{% endif %}>Applied</option>
+                    <option value="Under Review" {% if selected_status == 'Under Review' %}selected{% endif %}>Under Review</option>
+                    <option value="Selected" {% if selected_status == 'Selected' %}selected{% endif %}>Selected / Offer Sent</option>
+                    <option value="Rejected" {% if selected_status == 'Rejected' %}selected{% endif %}>Rejected</option>
+                    <option value="Completed" {% if selected_status == 'Completed' %}selected{% endif %}>Completed</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100 fw-semibold">
+                    <i class="bi bi-funnel me-1"></i>Filter
+                </button>
+                <a href="{{ url_for('company.applicants') }}" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Applicants List -->
+    <div class="row g-4">
+        {% for app in applications %}
+            <div class="col-lg-6">
+                <div class="card p-3 border-0 shadow-sm h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h5 class="fw-bold mb-1">{{ app.student.full_name }}</h5>
+                            <small class="text-primary fw-semibold"><i class="bi bi-briefcase me-1"></i>Applied for: {{ app.internship.title }}</small>
+                        </div>
+                        <span class="badge {% if app.status == 'Applied' %}status-applied{% elif app.status == 'Under Review' %}status-under-review{% elif app.status == 'Selected' %}status-selected{% elif app.status == 'Rejected' %}status-rejected{% else %}status-completed{% endif %} px-2 py-1">
+                            {{ app.status }}
+                        </span>
+                    </div>
+
+                    <div class="bg-light p-2 rounded mb-3 small">
+                        <div><strong>College:</strong> {{ app.student.college_name or 'N/A' }}</div>
+                        <div><strong>Degree:</strong> {{ app.student.degree or 'N/A' }} &bull; <strong>CGPA:</strong> {{ app.student.cgpa or 'N/A' }} (Grad: {{ app.student.graduation_year or 'N/A' }})</div>
+                        <div><strong>Phone:</strong> {{ app.student.phone }} &bull; <strong>Email:</strong> {{ app.student.user.email }}</div>
+                        {% if app.student.skills %}
+                            <div class="mt-1"><strong>Skills:</strong> {{ app.student.skills }}</div>
+                        {% endif %}
+                    </div>
+
+                    {% if app.cover_letter %}
+                        <div class="mb-3 small">
+                            <strong class="text-secondary">Candidate Statement:</strong>
+                            <p class="text-muted mb-0 fst-italic">"{{ app.cover_letter }}"</p>
+                        </div>
+                    {% endif %}
+
+                    {% if app.company_feedback %}
+                        <div class="mb-3 p-2 bg-light rounded small border">
+                            <strong class="text-primary">Recorded Feedback:</strong> {{ app.company_feedback }}
+                        </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
+                        <a href="{{ url_for('student.download_resume', resume_id=app.resume_id) }}" class="btn btn-sm btn-outline-danger" title="Download Resume">
+                            <i class="bi bi-file-earmark-pdf me-1"></i>Resume (PDF/DOCX)
+                        </a>
+
+                        <!-- Trigger Update Status Modal -->
+                        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#updateStatusModal{{ app.id }}">
+                            <i class="bi bi-pencil-square me-1"></i>Update Status
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Update Modal -->
+            <div class="modal fade" id="updateStatusModal{{ app.id }}" tabindex="-1" aria-labelledby="modalLabel{{ app.id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title fw-bold" id="modalLabel{{ app.id }}">Update Application Status</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form method="POST" action="{{ url_for('company.update_application_status', app_id=app.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="modal-body">
+                                <p class="small text-muted mb-3">
+                                    Updating candidate <strong>{{ app.student.full_name }}</strong> for <strong>{{ app.internship.title }}</strong>.
+                                </p>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold">Status Stage</label>
+                                    <select class="form-select" name="status" required>
+                                        <option value="Applied" {% if app.status == 'Applied' %}selected{% endif %}>Applied</option>
+                                        <option value="Under Review" {% if app.status == 'Under Review' %}selected{% endif %}>Under Review</option>
+                                        <option value="Selected" {% if app.status == 'Selected' %}selected{% endif %}>Selected / Offer Issued</option>
+                                        <option value="Rejected" {% if app.status == 'Rejected' %}selected{% endif %}>Rejected</option>
+                                        <option value="Completed" {% if app.status == 'Completed' %}selected{% endif %}>Completed Internship</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold">Recruiter Feedback / Notes to Candidate</label>
+                                    <textarea class="form-control" name="company_feedback" rows="3" placeholder="Provide feedback or next steps (e.g. Schedule technical interview on Monday)...">{{ app.company_feedback or '' }}</textarea>
+                                    <div class="form-text small">This feedback will be notified directly to the student in their dashboard.</div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary fw-semibold">Save & Notify Student</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12 text-center py-5 text-muted">
+                <i class="bi bi-people fs-1 text-secondary d-block mb-2"></i>
+                No candidate applications match this selection.
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

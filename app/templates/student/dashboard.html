@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - SmartIntern{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header Greeting -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1">Welcome back, {{ student.full_name }}! 👋</h2>
+            <p class="text-muted mb-0">
+                <i class="bi bi-mortarboard me-1"></i>{{ student.degree or 'Student' }} &bull; {{ student.college_name or 'College not set' }}
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('student.profile') }}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-person-lines-fill me-1"></i>Edit Profile & Resume
+            </a>
+            <a href="{{ url_for('internships.list_internships') }}" class="btn btn-primary btn-sm">
+                <i class="bi bi-search me-1"></i>Find Safe Internships
+            </a>
+        </div>
+    </div>
+
+    <!-- Application Stat Counters -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card p-3 border-0 bg-primary-subtle text-primary h-100">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="small fw-semibold text-uppercase">Total Applied</span>
+                    <i class="bi bi-send fs-4"></i>
+                </div>
+                <h2 class="fw-bold mb-0">{{ total_apps }}</h2>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="card p-3 border-0 bg-warning-subtle text-warning-emphasis h-100">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="small fw-semibold text-uppercase">Under Review</span>
+                    <i class="bi bi-clock-history fs-4"></i>
+                </div>
+                <h2 class="fw-bold mb-0">{{ under_review }}</h2>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="card p-3 border-0 bg-success-subtle text-success h-100">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="small fw-semibold text-uppercase">Selected / Offers</span>
+                    <i class="bi bi-patch-check-fill fs-4"></i>
+                </div>
+                <h2 class="fw-bold mb-0">{{ selected }}</h2>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="card p-3 border-0 bg-danger-subtle text-danger h-100">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="small fw-semibold text-uppercase">Rejected</span>
+                    <i class="bi bi-x-circle fs-4"></i>
+                </div>
+                <h2 class="fw-bold mb-0">{{ rejected }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Applications Section -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0"><i class="bi bi-file-earmark-text me-2 text-primary"></i>Recent Applications</h5>
+            <a href="{{ url_for('student.applications') }}" class="btn btn-sm btn-link text-decoration-none">View All Applications &rarr;</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small text-muted">
+                    <tr>
+                        <th>Role / Position</th>
+                        <th>Company</th>
+                        <th>Applied On</th>
+                        <th>Status</th>
+                        <th>Company Feedback</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for app in recent_apps %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('internships.detail', internship_id=app.internship.id) }}" class="fw-semibold text-dark text-decoration-none">
+                                    {{ app.internship.title }}
+                                </a>
+                            </td>
+                            <td>{{ app.internship.company.company_name }}</td>
+                            <td>{{ app.applied_at.strftime('%b %d, %Y') }}</td>
+                            <td>
+                                {% if app.status == 'Applied' %}
+                                    <span class="badge status-applied">Applied</span>
+                                {% elif app.status == 'Under Review' %}
+                                    <span class="badge status-under-review">Under Review</span>
+                                {% elif app.status == 'Selected' %}
+                                    <span class="badge status-selected">🎉 Selected</span>
+                                {% elif app.status == 'Rejected' %}
+                                    <span class="badge status-rejected">Rejected</span>
+                                {% elif app.status == 'Completed' %}
+                                    <span class="badge status-completed">Completed</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-muted">
+                                    {{ app.company_feedback or 'Pending recruiter review' }}
+                                </small>
+                            </td>
+                            <td class="text-end">
+                                <a href="{{ url_for('internships.detail', internship_id=app.internship.id) }}" class="btn btn-sm btn-outline-secondary">
+                                    View Post
+                                </a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox fs-2 d-block mb-1"></i>
+                                You haven't applied to any internships yet.
+                                <br>
+                                <a href="{{ url_for('internships.list_internships') }}" class="btn btn-sm btn-primary mt-2">
+                                    Browse Open Postings
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recommended Opportunities -->
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0">
+                <i class="bi bi-stars text-warning me-2"></i>Recommended For You
+                {% if student.preferred_domain %}<small class="text-muted fw-normal">({{ student.preferred_domain }})</small>{% endif %}
+            </h5>
+            <a href="{{ url_for('internships.list_internships') }}" class="text-primary small text-decoration-none">Explore More &rarr;</a>
+        </div>
+
+        <div class="row g-3">
+            {% for item in recommended %}
+                <div class="col-md-6">
+                    <div class="card p-3 border-0 shadow-sm h-100">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <span class="badge bg-light text-dark border mb-1">{{ item.category.name }}</span>
+                                <h6 class="fw-bold mb-0">
+                                    <a href="{{ url_for('internships.detail', internship_id=item.id) }}" class="text-dark text-decoration-none">
+                                        {{ item.title }}
+                                    </a>
+                                </h6>
+                                <small class="text-primary fw-semibold">{{ item.company.company_name }}</small>
+                            </div>
+                            {% if item.scam_check %}
+                                {% if item.scam_check.risk_level == 'Low' %}
+                                    <span class="badge badge-risk-low"><i class="bi bi-shield-check me-1"></i>Safe</span>
+                                {% elif item.scam_check.risk_level == 'Medium' %}
+                                    <span class="badge badge-risk-medium"><i class="bi bi-exclamation-triangle me-1"></i>Caution</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+
+                        <p class="text-muted small mb-2">{{ item.description[:95] }}...</p>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
+                            <span class="small text-success fw-bold">₹{{ "{:,.0f}".format(item.stipend_amount) }}/mo</span>
+                            <a href="{{ url_for('internships.detail', internship_id=item.id) }}" class="btn btn-sm btn-outline-primary">
+                                Apply Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

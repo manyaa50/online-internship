@@ -1,0 +1,322 @@
+{% extends "base.html" %}
+
+{% block title %}Smart Online Internship Management System with Scam Prevention{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-center">
+    <div class="container py-4">
+        <span class="badge bg-white text-primary px-3 py-2 rounded-pill fw-semibold mb-3 shadow-sm">
+            <i class="bi bi-shield-lock-fill me-1"></i> Automated Real-Time Scam Prevention Engine
+        </span>
+        <h1 class="display-4 fw-bold text-white mb-3">
+            Find Authentic Internships.<br>Zero Scams. Guaranteed Safety.
+        </h1>
+        <p class="lead text-white-50 mx-auto mb-4" style="max-width: 720px;">
+            The verified internship platform powered by heuristic scam detection algorithms that filter out fraudulent postings, upfront fee demands, and fake recruiter profiles before they reach you.
+        </p>
+
+        <!-- Search Bar -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-8">
+                <form action="{{ url_for('internships.list_internships') }}" method="GET" class="card p-2 shadow-lg border-0">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-0 text-muted">
+                            <i class="bi bi-search fs-5"></i>
+                        </span>
+                        <input type="text" name="keyword" class="form-control border-0 py-3 shadow-none" placeholder="Search by role, skills (e.g. Python, React), or company...">
+                        <button class="btn btn-primary px-4 fw-semibold" type="submit">
+                            Explore Postings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="{{ url_for('internships.list_internships') }}" class="btn btn-light btn-lg px-4 text-primary fw-semibold shadow-sm">
+                <i class="bi bi-briefcase me-1"></i> Browse Opportunities
+            </a>
+            {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('auth.register') }}" class="btn btn-outline-light btn-lg px-4 fw-semibold">
+                    <i class="bi bi-building me-1"></i> Post an Internship
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Live Stats Counters -->
+<section class="py-4 bg-white border-bottom shadow-sm">
+    <div class="container">
+        <div class="row text-center g-3">
+            <div class="col-6 col-md-3">
+                <div class="p-2">
+                    <h3 class="fw-bold text-primary mb-1">{{ total_postings }}+</h3>
+                    <p class="text-muted small mb-0">Total Opportunities</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-2">
+                    <h3 class="fw-bold text-success mb-1">{{ total_companies }}+</h3>
+                    <p class="text-muted small mb-0">Verified Companies</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-2">
+                    <h3 class="fw-bold text-danger mb-1">{{ scam_prevented_count }}</h3>
+                    <p class="text-muted small mb-0">Scam Postings Blocked</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="p-2">
+                    <h3 class="fw-bold text-info mb-1">100%</h3>
+                    <p class="text-muted small mb-0">Free For Students</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Safety Awareness Section (Spotting Fake Internships) -->
+<section id="safety-tips" class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-semibold mb-2">
+                <i class="bi bi-shield-exclamation me-1"></i> Student Safety Awareness
+            </span>
+            <h2 class="fw-bold">How to Spot & Avoid Fake Internships</h2>
+            <p class="text-muted mx-auto" style="max-width: 650px;">
+                Cybercriminals prey on college students with deceptive postings. Our built-in Scam Detector screens every posting against these 6 primary threat vectors:
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Tip 1 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 p-3 card-hover">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="bg-danger-subtle text-danger p-3 rounded-circle fs-4">
+                            <i class="bi bi-cash-coin"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0">1. Upfront Payment Demands</h5>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        <strong>Red Flag:</strong> The recruiter asks for a "registration fee", "security deposit", "training cost", or "laptop deposit". Real employers pay you; they never ask you to pay them.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tip 2 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 p-3 card-hover">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="bg-warning-subtle text-warning p-3 rounded-circle fs-4">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0">2. Unrealistic Offers</h5>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        <strong>Red Flag:</strong> Promises of "guaranteed placement", "earn ₹30,000/week", or "direct selection without interview". If an offer sounds too good to be true, it is almost certainly fraudulent.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tip 3 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 p-3 card-hover">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="bg-primary-subtle text-primary p-3 rounded-circle fs-4">
+                            <i class="bi bi-envelope-exclamation"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0">3. Suspicious Email Domains</h5>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        <strong>Red Flag:</strong> Claiming to represent a corporate brand but contacting you through free Gmail, Yahoo, or Outlook addresses instead of their official company domain (@company.com).
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tip 4 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 p-3 card-hover">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="bg-info-subtle text-info p-3 rounded-circle fs-4">
+                            <i class="bi bi-chat-dots"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0">4. Off-Platform Chat Redirects</h5>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        <strong>Red Flag:</strong> Requests like "Do not email, DM on Telegram" or "Message directly on WhatsApp to receive offer letter". Scammers use encrypted chat to evade detection.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tip 5 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 p-3 card-hover">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="bg-secondary-subtle text-secondary p-3 rounded-circle fs-4">
+                            <i class="bi bi-link-45deg"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0">5. Shortened & Mismatched URLs</h5>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        <strong>Red Flag:</strong> Links using bit.ly, tinyurl, or unofficial blogspot pages. Authentic firms provide links directly matching their registered company website.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tip 6 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 p-3 card-hover">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="bg-danger-subtle text-danger p-3 rounded-circle fs-4">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <h5 class="fw-bold mb-0">6. Artificial Urgency Tactics</h5>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        <strong>Red Flag:</strong> "Limited seats left! Apply within 1 hour or lose your spot!". Scammers induce artificial panic to prevent you from doing background research.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Safe Internships -->
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-end mb-4">
+            <div>
+                <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-semibold mb-2">
+                    <i class="bi bi-check2-circle me-1"></i> Screened Opportunities
+                </span>
+                <h2 class="fw-bold mb-0">Featured Safe Internships</h2>
+            </div>
+            <a href="{{ url_for('internships.list_internships') }}" class="btn btn-outline-primary fw-semibold">
+                View All Postings <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-4">
+            {% for item in featured_internships %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 p-3 card-hover border position-relative">
+                        <!-- Safety Badge -->
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-light text-secondary border">
+                                <i class="bi bi-tag me-1"></i>{{ item.category.name }}
+                            </span>
+                            {% if item.scam_check %}
+                                {% if item.scam_check.risk_level == 'Low' %}
+                                    <span class="badge badge-risk-low" title="Passed All Heuristic Security Screening">
+                                        <i class="bi bi-shield-check me-1"></i>Safe (Score: {{ item.scam_check.risk_score }}/100)
+                                    </span>
+                                {% elif item.scam_check.risk_level == 'Medium' %}
+                                    <span class="badge badge-risk-medium" title="Advisory Warning">
+                                        <i class="bi bi-exclamation-triangle me-1"></i>Caution (Score: {{ item.scam_check.risk_score }}/100)
+                                    </span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+
+                        <h5 class="fw-bold mb-1">
+                            <a href="{{ url_for('internships.detail', internship_id=item.id) }}" class="text-dark text-decoration-none">
+                                {{ item.title }}
+                            </a>
+                        </h5>
+                        <p class="text-primary small fw-semibold mb-2">
+                            <i class="bi bi-building me-1"></i>{{ item.company.company_name }}
+                        </p>
+
+                        <p class="text-muted small mb-3 text-truncate-2" style="min-height: 40px;">
+                            {{ item.description[:110] }}...
+                        </p>
+
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <span class="badge bg-light text-dark border">
+                                <i class="bi bi-geo-alt me-1"></i>{{ item.location_type|capitalize }}
+                            </span>
+                            <span class="badge bg-light text-dark border">
+                                <i class="bi bi-calendar3 me-1"></i>{{ item.duration_text }}
+                            </span>
+                            <span class="badge bg-light text-success border">
+                                <i class="bi bi-cash me-1"></i>₹{{ "{:,.0f}".format(item.stipend_amount) }}/mo
+                            </span>
+                        </div>
+
+                        <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
+                            <small class="text-muted">Deadline: {{ item.application_deadline.strftime('%b %d, %Y') }}</small>
+                            <a href="{{ url_for('internships.detail', internship_id=item.id) }}" class="btn btn-sm btn-primary">
+                                Details & Apply
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="col-12 text-center py-5">
+                    <p class="text-muted">No active internships available right now. Check back soon!</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Browse by Category Grid -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Explore Domains & Specializations</h2>
+            <p class="text-muted">Find verified opportunities across leading computer application tracks</p>
+        </div>
+
+        <div class="row g-3">
+            {% for cat in categories %}
+                <div class="col-6 col-md-4 col-lg-3">
+                    <a href="{{ url_for('internships.list_internships', category=cat.id) }}" class="card p-3 text-center text-decoration-none card-hover border-0 h-100">
+                        <i class="{{ cat.icon_class }} fs-2 text-primary mb-2"></i>
+                        <h6 class="fw-bold text-dark mb-1">{{ cat.name }}</h6>
+                        <small class="text-muted">{{ cat.internships.filter_by(status='active').count() }} Openings</small>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Architecture -->
+<section id="how-it-works" class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">How the Smart System Protects You</h2>
+            <p class="text-muted">Multi-layered security verification workflow</p>
+        </div>
+
+        <div class="row g-4 text-center">
+            <div class="col-md-4">
+                <div class="p-4 bg-white rounded-3 shadow-sm h-100 border">
+                    <div class="text-primary fs-1 mb-3"><i class="bi bi-shield-check"></i></div>
+                    <h5 class="fw-bold">1. Employer Verification</h5>
+                    <p class="text-muted small mb-0">Every company undergoes administrative scrutiny with registration numbers, official domain emails, and corporate registry verification before being granted posting access.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4 bg-white rounded-3 shadow-sm h-100 border">
+                    <div class="text-danger fs-1 mb-3"><i class="bi bi-cpu"></i></div>
+                    <h5 class="fw-bold">2. Automated Scam Screening</h5>
+                    <p class="text-muted small mb-0">Every internship posting is screened by our <code>scam_detector.py</code> engine against financial demands, exaggerated promises, off-platform redirects, and suspicious domains.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="p-4 bg-white rounded-3 shadow-sm h-100 border">
+                    <div class="text-success fs-1 mb-3"><i class="bi bi-mortarboard"></i></div>
+                    <h5 class="fw-bold">3. Transparent Student Apply</h5>
+                    <p class="text-muted small mb-0">Students view safety audit scores, triggered heuristic explanations, and can track application statuses (Applied, Under Review, Selected) safely without fear of extortion.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

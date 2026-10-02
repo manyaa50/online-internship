@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Company Profile & Verification - SmartIntern{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card p-4 border-0 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+                    <div>
+                        <h4 class="fw-bold mb-0"><i class="bi bi-building text-primary me-2"></i>Company Profile</h4>
+                        <small class="text-muted">Accurate details are vital for verification and student trust</small>
+                    </div>
+                    <div>
+                        {% if company.verification_status == 'approved' %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2">
+                                <i class="bi bi-patch-check-fill me-1"></i>Verified Organization
+                            </span>
+                        {% elif company.verification_status == 'pending' %}
+                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-2">
+                                <i class="bi bi-hourglass-split me-1"></i>Pending Verification
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2">
+                                <i class="bi bi-x-circle me-1"></i>Verification Rejected
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ url_for('company.profile') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Company / Brand Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="company_name" value="{{ company.company_name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Official Corporate Website</label>
+                            <input type="url" class="form-control" name="website" value="{{ company.website or '' }}" placeholder="https://example.com">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Official HR / Recruiting Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" name="official_email" value="{{ company.official_email }}" required>
+                            <div class="form-text small">Use your official company domain (@company.com) to avoid scam warnings.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Contact Phone Number <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" name="phone" value="{{ company.phone }}" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">GSTIN / Corporate Registration Number</label>
+                            <input type="text" class="form-control" name="registration_gst_number" value="{{ company.registration_gst_number or '' }}" placeholder="e.g. 29ABCDE1234F1Z5">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Company Logo</label>
+                            <input type="file" class="form-control" name="logo" accept="image/*">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Corporate Office Address</label>
+                        <textarea class="form-control" name="address" rows="2" placeholder="Full street address">{{ company.address or '' }}</textarea>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">City</label>
+                            <input type="text" class="form-control" name="city" value="{{ company.city or '' }}" placeholder="City">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">State / Province</label>
+                            <input type="text" class="form-control" name="state" value="{{ company.state or '' }}" placeholder="State">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Country</label>
+                            <input type="text" class="form-control" name="country" value="{{ company.country or 'India' }}">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">About Organization & Industry Domain</label>
+                        <textarea class="form-control" name="description" rows="3" placeholder="Tell candidates about your company mission and technical work...">{{ company.description or '' }}</textarea>
+                    </div>
+
+                    <h6 class="fw-bold text-secondary mt-4 mb-2">Primary Contact Representative</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Representative Name</label>
+                            <input type="text" class="form-control" name="contact_person_name" value="{{ company.contact_person_name or '' }}" placeholder="e.g. Rahul Sharma">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Designation</label>
+                            <input type="text" class="form-control" name="contact_person_designation" value="{{ company.contact_person_designation or '' }}" placeholder="e.g. Lead Technical Recruiter">
+                        </div>
+                    </div>
+
+                    {% if company.verification_status == 'rejected' %}
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="resubmit_verification" id="resubmitCheck" value="1" checked>
+                            <label class="form-check-label small fw-semibold text-primary" for="resubmitCheck">
+                                Request re-verification after submitting updated information
+                            </label>
+                        </div>
+                    {% endif %}
+
+                    <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                        <i class="bi bi-save me-1"></i>Update Profile
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Column: Verification Audit History -->
+        <div class="col-lg-4">
+            <div class="card p-4 border-0 shadow-sm mb-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-patch-question text-primary me-2"></i>Verification Guidelines</h5>
+                <ul class="small text-muted ps-3 mb-0">
+                    <li class="mb-2">Admin reviews all corporate registrations to prevent bogus internship solicitations.</li>
+                    <li class="mb-2">Official corporate domains (e.g. <code>@company.com</code>) receive fast-track verification.</li>
+                    <li class="mb-2">GSTIN / Corporate CIN should match official registry records.</li>
+                    <li class="mb-2">Unverified companies cannot publish internship postings to students.</li>
+                </ul>
+            </div>
+
+            <div class="card p-3 border-0 shadow-sm">
+                <h6 class="fw-bold text-muted small text-uppercase mb-3">Verification History</h6>
+                <div class="timeline small">
+                    {% for ver in verifications %}
+                        <div class="border-start border-2 ps-3 pb-3 position-relative {% if ver.status == 'approved' %}border-success{% elif ver.status == 'rejected' %}border-danger{% else %}border-warning{% endif %}">
+                            <div class="fw-bold {% if ver.status == 'approved' %}text-success{% elif ver.status == 'rejected' %}text-danger{% else %}text-warning{% endif %} text-uppercase">
+                                {{ ver.status }}
+                            </div>
+                            <div class="text-muted small mb-1">{{ ver.created_at.strftime('%b %d, %Y %I:%M %p') }}</div>
+                            {% if ver.review_notes %}
+                                <div class="text-secondary small">{{ ver.review_notes }}</div>
+                            {% endif %}
+                            {% if ver.rejection_reason %}
+                                <div class="text-danger small mt-1"><strong>Reason:</strong> {{ ver.rejection_reason }}</div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted small mb-0">No verification events logged yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

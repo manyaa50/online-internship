@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Report Fraudulent Internship - SmartIntern{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-7">
+            <div class="card p-4 border-0 shadow-sm border-top border-danger border-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="bg-danger text-white p-3 rounded-circle fs-3 flex-shrink-0">
+                        <i class="bi bi-flag-fill"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold mb-0 text-danger">File a Scam or Fraud Report</h4>
+                        <small class="text-muted">Help safeguard fellow students by reporting illegal or suspicious recruitment practices.</small>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning small py-2 mb-4">
+                    <i class="bi bi-info-circle-fill me-1"></i> Reports are reviewed immediately by system administrators. False or fraudulent listings are promptly delisted and offending companies blocked.
+                </div>
+
+                <form method="POST" action="{{ url_for('reports.submit_report') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    {% if internship %}
+                        <input type="hidden" name="internship_id" value="{{ internship.id }}">
+                    {% endif %}
+                    {% if company %}
+                        <input type="hidden" name="company_id" value="{{ company.id }}">
+                    {% endif %}
+
+                    <!-- Target Entity Summary -->
+                    {% if internship or company %}
+                        <div class="p-3 bg-light rounded-3 mb-3 border small">
+                            <span class="text-muted text-uppercase fw-semibold d-block mb-1">Entity Being Reported:</span>
+                            {% if internship %}
+                                <div class="fw-bold fs-6">{{ internship.title }}</div>
+                                <div class="text-muted">Offered by: {{ internship.company.company_name }}</div>
+                            {% elif company %}
+                                <div class="fw-bold fs-6">{{ company.company_name }}</div>
+                                <div class="text-muted">Official Email: {{ company.official_email }}</div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Primary Reason for Report <span class="text-danger">*</span></label>
+                        <select class="form-select" name="reason" required>
+                            <option value="" disabled selected>Select Violation Category...</option>
+                            <option value="Demanded upfront payment or registration fee">Demanded upfront payment or registration fee</option>
+                            <option value="Off-platform redirect (Asked to chat on Telegram/WhatsApp)">Off-platform redirect (Asked to chat on Telegram/WhatsApp)</option>
+                            <option value="Exaggerated promises / Fake job guarantee">Exaggerated promises / Fake job guarantee</option>
+                            <option value="Company impersonation / Identity theft">Company impersonation / Identity theft</option>
+                            <option value="Asked for sensitive banking or identity documents">Asked for sensitive banking or identity documents</option>
+                            <option value="Harassment or inappropriate recruiter behavior">Harassment or inappropriate recruiter behavior</option>
+                            <option value="Other fraudulent activity">Other fraudulent activity</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Detailed Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="description" rows="4" placeholder="Describe exactly what happened: did they mention a UPI ID, ask for registration money, or send suspicious links?" required></textarea>
+                        <div class="form-text small">Please be as specific as possible to assist administrator investigation.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-semibold">Evidence Link / Screenshot URL (Optional)</label>
+                        <input type="url" class="form-control" name="evidence_link" placeholder="https://drive.google.com/... or image hosting link">
+                        <div class="form-text small">Optional link to screenshot of chat, email, or payment demand.</div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="javascript:history.back()" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-danger px-4 fw-semibold">
+                            <i class="bi bi-send-fill me-1"></i>Submit Report to Admin
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

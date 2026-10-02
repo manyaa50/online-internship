@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}Edit Internship{% else %}Post New Internship{% endif %} - SmartIntern{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row g-4">
+        <!-- Form Column -->
+        <div class="col-lg-8">
+            <div class="card p-4 border-0 shadow-sm">
+                <div class="mb-4 pb-2 border-bottom">
+                    <h3 class="fw-bold mb-1">
+                        <i class="bi bi-briefcase-fill text-primary me-2"></i>
+                        {% if is_edit %}Edit Internship Opportunity{% else %}Post a Verified Internship{% endif %}
+                    </h3>
+                    <p class="text-muted small mb-0">Postings undergo automatic safety evaluation before student publication.</p>
+                </div>
+
+                <form method="POST" action="{% if is_edit %}{{ url_for('company.edit_internship', internship_id=internship.id) }}{% else %}{{ url_for('company.create_internship') }}{% endif %}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Internship Role Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="title" value="{{ internship.title if is_edit else '' }}" placeholder="e.g. Python Backend Developer Intern" required>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Domain / Category <span class="text-danger">*</span></label>
+                            <select class="form-select" name="category_id" required>
+                                <option value="" disabled {% if not is_edit %}selected{% endif %}>Select Domain...</option>
+                                {% for cat in categories %}
+                                    <option value="{{ cat.id }}" {% if is_edit and internship.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Application Deadline <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" name="application_deadline" value="{{ internship.application_deadline.strftime('%Y-%m-%d') if is_edit else '' }}" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Detailed Job Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="description" rows="4" placeholder="Comprehensive overview of the internship role and project scope (min 30 words recommended)..." required>{{ internship.description if is_edit else '' }}</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Key Responsibilities</label>
+                        <textarea class="form-control" name="responsibilities" rows="3" placeholder="Bullet points of daily tasks and deliverables...">{{ internship.responsibilities if is_edit else '' }}</textarea>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Eligibility Criteria <span class="text-danger">*</span></label>
+                            <textarea class="form-control" name="eligibility" rows="2" placeholder="e.g. BCA/B.Tech students graduating in 2026/2027" required>{{ internship.eligibility if is_edit else '' }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Skills Required (Comma separated) <span class="text-danger">*</span></label>
+                            <textarea class="form-control" name="skills_required" rows="2" placeholder="e.g. Python, Flask, MySQL, Git, REST APIs" required>{{ internship.skills_required if is_edit else '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Workplace Mode</label>
+                            <select class="form-select" name="location_type">
+                                <option value="remote" {% if is_edit and internship.location_type == 'remote' %}selected{% endif %}>Remote / Work From Home</option>
+                                <option value="on-site" {% if is_edit and internship.location_type == 'on-site' %}selected{% endif %}>On-site (Office)</option>
+                                <option value="hybrid" {% if is_edit and internship.location_type == 'hybrid' %}selected{% endif %}>Hybrid</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">City / Location</label>
+                            <input type="text" class="form-control" name="location_city" value="{{ internship.location_city if is_edit else '' }}" placeholder="e.g. Bengaluru / Remote">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Duration</label>
+                            <input type="text" class="form-control" name="duration_text" value="{{ internship.duration_text if is_edit else '3 Months' }}" placeholder="e.g. 3 Months">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Stipend Type</label>
+                            <select class="form-select" name="stipend_type">
+                                <option value="paid" {% if is_edit and internship.stipend_type == 'paid' %}selected{% endif %}>Paid Monthly Stipend</option>
+                                <option value="unpaid" {% if is_edit and internship.stipend_type == 'unpaid' %}selected{% endif %}>Unpaid</option>
+                                <option value="performance-based" {% if is_edit and internship.stipend_type == 'performance-based' %}selected{% endif %}>Performance Based</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Monthly Stipend Amount (INR)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input type="number" step="500" class="form-control" name="stipend_amount" value="{{ internship.stipend_amount if is_edit else '15000' }}" placeholder="15000">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">No. of Openings</label>
+                            <input type="number" min="1" class="form-control" name="openings_count" value="{{ internship.openings_count if is_edit else '2' }}">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Contact Email for Queries</label>
+                            <input type="email" class="form-control" name="contact_email" value="{{ internship.contact_email if is_edit else company.official_email }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Contact Phone Number</label>
+                            <input type="tel" class="form-control" name="contact_phone" value="{{ internship.contact_phone if is_edit else company.phone }}">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{{ url_for('company.manage_internships') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                            {% if is_edit %}<i class="bi bi-check2-circle me-1"></i>Save & Screen Changes{% else %}<i class="bi bi-shield-check me-1"></i>Publish & Screen Posting{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Safety Rules Guidance Sidebar -->
+        <div class="col-lg-4">
+            <div class="card p-4 border-0 shadow-sm bg-light mb-3">
+                <div class="d-flex align-items-center gap-2 mb-3 text-primary">
+                    <i class="bi bi-shield-lock-fill fs-4"></i>
+                    <h5 class="fw-bold mb-0">Scam Prevention Engine</h5>
+                </div>
+                <p class="small text-muted mb-3">
+                    Every posting is evaluated automatically by our weighted heuristic scanner. To guarantee immediate approval with a green safety badge, ensure you adhere to the following:
+                </p>
+
+                <div class="d-flex flex-column gap-3 small">
+                    <div class="d-flex gap-2">
+                        <i class="bi bi-x-circle-fill text-danger flex-shrink-0 mt-1"></i>
+                        <span><strong>Never mention fees:</strong> Any mention of registration, security deposit, or training fees triggers an automatic <strong>High Risk</strong> flag.</span>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <i class="bi bi-x-circle-fill text-danger flex-shrink-0 mt-1"></i>
+                        <span><strong>Avoid unrealistic claims:</strong> Do not claim "100% guaranteed job", "direct selection without interview", or stipends > ₹60,000/mo.</span>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <i class="bi bi-exclamation-triangle-fill text-warning flex-shrink-0 mt-1"></i>
+                        <span><strong>No off-platform redirects:</strong> Do not instruct candidates to message on Telegram or WhatsApp.</span>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <i class="bi bi-check-circle-fill text-success flex-shrink-0 mt-1"></i>
+                        <span><strong>Provide clear details:</strong> List clear responsibilities and technical skills required to pass the vagueness check.</span>
+                    </div>
+                </div>
+            </div>
+
+            {% if is_edit and internship.scam_check %}
+                <div class="card p-3 border-0 shadow-sm scam-alert-card {{ internship.scam_check.risk_level.lower() }}">
+                    <h6 class="fw-bold mb-2">Current Security Score</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold fs-5">Score: {{ internship.scam_check.risk_score }}/100</span>
+                        <span class="badge {% if internship.scam_check.risk_level == 'Low' %}badge-risk-low{% elif internship.scam_check.risk_level == 'Medium' %}badge-risk-medium{% else %}badge-risk-high{% endif %}">
+                            {{ internship.scam_check.risk_level }} Risk
+                        </span>
+                    </div>
+                    <p class="small text-muted mb-0">{{ internship.scam_check.summary_notes }}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

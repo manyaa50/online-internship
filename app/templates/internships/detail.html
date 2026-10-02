@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+
+{% block title %}{{ internship.title }} at {{ internship.company.company_name }} - SmartIntern{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-decoration-none">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('internships.list_internships') }}" class="text-decoration-none">Internships</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ internship.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Main Job Details Column -->
+        <div class="col-lg-8">
+            <!-- Job Header Card -->
+            <div class="card p-4 border-0 shadow-sm mb-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-3">
+                    <div>
+                        <span class="badge bg-light text-primary border mb-2">
+                            <i class="bi bi-tag me-1"></i>{{ internship.category.name }}
+                        </span>
+                        <h2 class="fw-bold mb-1">{{ internship.title }}</h2>
+                        <h5 class="text-muted fw-normal mb-0">
+                            <i class="bi bi-building me-1 text-primary"></i>
+                            <strong>{{ internship.company.company_name }}</strong>
+                            {% if internship.company.is_verified %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle ms-1 small">
+                                    <i class="bi bi-patch-check-fill me-1"></i>Verified Company
+                                </span>
+                            {% endif %}
+                        </h5>
+                    </div>
+
+                    <!-- Scam Risk Score Pill -->
+                    {% if internship.scam_check %}
+                        <div class="text-md-end">
+                            {% if internship.scam_check.risk_level == 'Low' %}
+                                <span class="badge badge-risk-low fs-6 px-3 py-2">
+                                    <i class="bi bi-shield-check me-1"></i>Safe ({{ internship.scam_check.risk_score }}/100)
+                                </span>
+                            {% elif internship.scam_check.risk_level == 'Medium' %}
+                                <span class="badge badge-risk-medium fs-6 px-3 py-2">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>Caution ({{ internship.scam_check.risk_score }}/100)
+                                </span>
+                            {% else %}
+                                <span class="badge badge-risk-high fs-6 px-3 py-2">
+                                    <i class="bi bi-shield-slash-fill me-1"></i>High Risk ({{ internship.scam_check.risk_score }}/100)
+                                </span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Key Metrics Grid -->
+                <div class="row g-2 p-3 bg-light rounded-3 mb-3 small">
+                    <div class="col-6 col-md-3">
+                        <span class="text-muted d-block">Monthly Stipend</span>
+                        <strong class="text-success fs-6">₹{{ "{:,.0f}".format(internship.stipend_amount) }}/mo</strong>
+                        <span class="text-muted small">({{ internship.stipend_type }})</span>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <span class="text-muted d-block">Workplace Mode</span>
+                        <strong class="text-dark fs-6">{{ internship.location_type|capitalize }}</strong>
+                        <span class="text-muted small">({{ internship.location_city or 'Anywhere' }})</span>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <span class="text-muted d-block">Duration</span>
+                        <strong class="text-dark fs-6">{{ internship.duration_text }}</strong>
+                        <span class="text-muted small">({{ internship.duration_weeks }} weeks)</span>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <span class="text-muted d-block">Apply Deadline</span>
+                        <strong class="text-danger fs-6">{{ internship.application_deadline.strftime('%b %d, %Y') }}</strong>
+                        <span class="text-muted small">
+                            {% if internship.application_deadline >= today %}
+                                (Open)
+                            {% else %}
+                                (Expired)
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-4">
+                    <h5 class="fw-bold mb-2">Role Overview</h5>
+                    <p class="text-muted" style="white-space: pre-line;">{{ internship.description }}</p>
+                </div>
+
+                <!-- Responsibilities -->
+                {% if internship.responsibilities %}
+                    <div class="mb-4">
+                        <h5 class="fw-bold mb-2">Key Responsibilities</h5>
+                        <p class="text-muted" style="white-space: pre-line;">{{ internship.responsibilities }}</p>
+                    </div>
+                {% endif %}
+
+                <!-- Eligibility -->
+                <div class="mb-4">
+                    <h5 class="fw-bold mb-2">Eligibility Criteria</h5>
+                    <p class="text-muted" style="white-space: pre-line;">{{ internship.eligibility }}</p>
+                </div>
+
+                <!-- Required Skills -->
+                <div class="mb-4">
+                    <h5 class="fw-bold mb-2">Required Technical Skills</h5>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for skill in internship.get_skills_list() %}
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 fs-6">
+                                {{ skill }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================= -->
+            <!-- CORE REQUIREMENT: SCAM ALERT, HEURISTIC AUDIT & REASONS       -->
+            <!-- (Prominently displayed before the Apply button)               -->
+            <!-- ============================================================= -->
+            <div class="card p-4 border-0 shadow-sm mb-4 scam-alert-card {% if internship.scam_check and internship.scam_check.risk_level == 'High' %}high{% elif internship.scam_check and internship.scam_check.risk_level == 'Medium' %}medium{% else %}low{% endif %}">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    {% if internship.scam_check and internship.scam_check.risk_level == 'High' %}
+                        <div class="bg-danger text-white p-3 rounded-circle fs-3 flex-shrink-0">
+                            <i class="bi bi-shield-slash-fill"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-danger mb-0">High Scam Risk Warning</h5>
+                            <small class="text-muted">This posting triggered multiple critical heuristic safety alerts.</small>
+                        </div>
+                    {% elif internship.scam_check and internship.scam_check.risk_level == 'Medium' %}
+                        <div class="bg-warning text-dark p-3 rounded-circle fs-3 flex-shrink-0">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-warning-emphasis mb-0">Security Advisory Notice (Moderate Caution)</h5>
+                            <small class="text-muted">Please exercise due caution. Certain elements matched suspicious heuristics.</small>
+                        </div>
+                    {% else %}
+                        <div class="bg-success text-white p-3 rounded-circle fs-3 flex-shrink-0">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-success mb-0">Verified Low-Risk Opportunity</h5>
+                            <small class="text-muted">Passed all automated heuristic scans and pattern checks.</small>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Explanation Summary -->
+                <p class="small text-muted mb-3">
+                    {{ internship.scam_check.summary_notes if internship.scam_check else 'No heuristic evaluation recorded.' }}
+                </p>
+
+                <!-- Triggered Rules List (if any) -->
+                {% if triggered_rules %}
+                    <div class="bg-white p-3 rounded border mb-3">
+                        <h6 class="fw-bold text-dark small mb-2">
+                            <i class="bi bi-list-check me-1 text-danger"></i>Triggered Safety Heuristics Breakdown:
+                        </h6>
+                        <div class="d-flex flex-column gap-2">
+                            {% for rule in triggered_rules %}
+                                <div class="p-2 rounded bg-light border-start border-warning border-3 small">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <strong>{{ rule.category }}: {{ rule.rule }}</strong>
+                                        <span class="badge bg-secondary-subtle text-secondary small">+{{ rule.weight }} pts</span>
+                                    </div>
+                                    <div class="text-muted mt-1">{{ rule.detail }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Universal Anti-Fraud Tip -->
+                <div class="p-3 bg-white rounded border border-warning-subtle small d-flex gap-2 align-items-center">
+                    <i class="bi bi-info-circle-fill text-warning fs-5 flex-shrink-0"></i>
+                    <div>
+                        <strong>Golden Rule of Internships:</strong> Never pay registration fees, security deposits, or training kit charges. Genuine employers provide free training and pay you for your work.
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================= -->
+            <!-- APPLICATION & REPORT ACTION SECTION                           -->
+            <!-- ============================================================= -->
+            <div class="card p-4 border-0 shadow-sm mb-4">
+                {% if existing_application %}
+                    <!-- Already Applied Status Banner -->
+                    <div class="alert alert-info d-flex align-items-center justify-content-between gap-3 mb-0" role="alert">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-check-circle-fill fs-3 text-info"></i>
+                            <div>
+                                <h6 class="fw-bold mb-0">You applied for this position on {{ existing_application.applied_at.strftime('%b %d, %Y') }}</h6>
+                                <small>Current Recruiter Status: <strong>{{ existing_application.status }}</strong></small>
+                            </div>
+                        </div>
+                        <a href="{{ url_for('student.applications') }}" class="btn btn-sm btn-outline-primary">
+                            Track in Dashboard
+                        </a>
+                    </div>
+                {% elif internship.application_deadline < today %}
+                    <div class="alert alert-secondary d-flex align-items-center gap-2 mb-0">
+                        <i class="bi bi-calendar-x fs-4"></i>
+                        <div>Applications for this internship closed on {{ internship.application_deadline.strftime('%b %d, %Y') }}.</div>
+                    </div>
+                {% elif current_user.is_authenticated and current_user.is_student %}
+                    <!-- Active Student Apply Button -->
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+                        <button type="button" class="btn btn-primary btn-lg px-5 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#applyInternshipModal">
+                            <i class="bi bi-send-fill me-2"></i>Apply for this Internship
+                        </button>
+                        <a href="{{ url_for('reports.submit_report', internship_id=internship.id) }}" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-flag-fill me-1"></i>Report this Posting
+                        </a>
+                    </div>
+                {% elif not current_user.is_authenticated %}
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+                        <div>
+                            <h6 class="fw-bold mb-1">Interested in this opportunity?</h6>
+                            <small class="text-muted">Sign in with your student account to apply in 1-click.</small>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('auth.login', next=request.path) }}" class="btn btn-primary fw-semibold px-4">
+                                Log In to Apply
+                            </a>
+                            <a href="{{ url_for('auth.register') }}" class="btn btn-outline-secondary px-3">
+                                Register
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- Employer / Admin viewing -->
+                    <div class="d-flex justify-content-between align-items-center text-muted small">
+                        <span>Signed in as <strong>{{ current_user.role|capitalize }}</strong> (Preview Mode)</span>
+                        {% if current_user.is_admin %}
+                            <a href="{{ url_for('admin.flagged_internships') }}" class="btn btn-sm btn-outline-danger">Admin Review</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Column: Employer Card & Quick Safety Check -->
+        <div class="col-lg-4">
+            <!-- Employer Profile Card -->
+            <div class="card p-4 border-0 shadow-sm mb-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-building text-primary me-2"></i>About the Employer</h5>
+                <h6 class="fw-bold text-dark mb-1">{{ internship.company.company_name }}</h6>
+                <small class="text-muted d-block mb-3">{{ internship.company.city or 'India' }}, {{ internship.company.country }}</small>
+
+                {% if internship.company.description %}
+                    <p class="small text-muted mb-3">{{ internship.company.description }}</p>
+                {% endif %}
+
+                <div class="small text-muted d-flex flex-column gap-2 pt-2 border-top">
+                    {% if internship.company.website %}
+                        <div>
+                            <i class="bi bi-globe me-2 text-primary"></i>
+                            <a href="{{ internship.company.website }}" target="_blank" class="text-decoration-none">{{ internship.company.website }}</a>
+                        </div>
+                    {% endif %}
+                    <div>
+                        <i class="bi bi-envelope me-2 text-primary"></i>
+                        <code>{{ internship.contact_email }}</code>
+                    </div>
+                    {% if internship.contact_phone %}
+                        <div>
+                            <i class="bi bi-telephone me-2 text-primary"></i>
+                            {{ internship.contact_phone }}
+                        </div>
+                    {% endif %}
+                    <div>
+                        <i class="bi bi-patch-check me-2 text-success"></i>
+                        Verification: <strong>{{ internship.company.verification_status|capitalize }}</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fraud Alert Action Box -->
+            <div class="card p-3 border-0 shadow-sm bg-danger-subtle text-danger-emphasis">
+                <h6 class="fw-bold mb-1"><i class="bi bi-shield-exclamation me-1"></i>Report Suspicious Activity</h6>
+                <p class="small mb-2">Did this recruiter ask for UPI transfer, registration charges, or redirect to Telegram?</p>
+                <a href="{{ url_for('reports.submit_report', internship_id=internship.id) }}" class="btn btn-danger btn-sm fw-semibold w-100">
+                    <i class="bi bi-flag-fill me-1"></i>File Scam Report
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- APPLICATION MODAL FOR STUDENTS                                            -->
+<!-- ========================================================================= -->
+{% if current_user.is_authenticated and current_user.is_student %}
+    <div class="modal fade" id="applyInternshipModal" tabindex="-1" aria-labelledby="applyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="applyModalLabel">
+                        <i class="bi bi-send-fill text-primary me-2"></i>Apply for {{ internship.title }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="{{ url_for('internships.apply', internship_id=internship.id) }}" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="modal-body">
+                        <p class="small text-muted mb-3">
+                            Submit your profile and resume to <strong>{{ internship.company.company_name }}</strong>.
+                        </p>
+
+                        <!-- Select Existing Resume -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Select Resume</label>
+                            {% if student_resumes %}
+                                <select class="form-select" name="resume_id" id="resumeSelect">
+                                    {% for res in student_resumes %}
+                                        <option value="{{ res.id }}" {% if res.is_primary %}selected{% endif %}>
+                                            {{ res.original_name }} (Uploaded {{ res.uploaded_at.strftime('%b %d, %Y') }}) {% if res.is_primary %}⭐ [Primary]{% endif %}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            {% else %}
+                                <div class="alert alert-warning small py-2">
+                                    You don't have a saved resume. Please upload one below.
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Or Upload a New Resume Directly -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Or Upload a New Resume (PDF / DOCX)</label>
+                            <input type="file" class="form-control form-control-sm" name="new_resume" accept=".pdf,.docx">
+                            <div class="form-text small">Max file size 8MB.</div>
+                        </div>
+
+                        <!-- Cover Letter / Note to Employer -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold">Why are you a good fit? (Optional Statement)</label>
+                            <textarea class="form-control" name="cover_letter" rows="3" placeholder="Briefly highlight your technical projects, passion for the role, and relevant experience..."></textarea>
+                        </div>
+
+                        <div class="p-2 bg-light rounded border small text-muted">
+                            <i class="bi bi-shield-check text-success me-1"></i> Your contact email and phone will be shared with the verified employer for interview scheduling.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary fw-semibold px-4">
+                            Submit Application
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

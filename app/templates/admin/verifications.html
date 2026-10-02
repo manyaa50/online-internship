@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Company Verifications - SmartIntern Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 pb-2 border-bottom">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-patch-check-fill text-warning me-2"></i>Company Verification Audits</h3>
+            <p class="text-muted small mb-0">Scrutinize business documents, official email domains, and corporate identities</p>
+        </div>
+        <div>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Back to Admin Hub
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="d-flex gap-2 mb-4">
+        <a href="{{ url_for('admin.verifications', status='pending') }}" class="btn btn-sm {% if current_status == 'pending' %}btn-warning text-dark fw-bold{% else %}btn-outline-secondary{% endif %} rounded-pill">
+            Pending Queue
+        </a>
+        <a href="{{ url_for('admin.verifications', status='approved') }}" class="btn btn-sm {% if current_status == 'approved' %}btn-success fw-bold{% else %}btn-outline-secondary{% endif %} rounded-pill">
+            Verified / Approved
+        </a>
+        <a href="{{ url_for('admin.verifications', status='rejected') }}" class="btn btn-sm {% if current_status == 'rejected' %}btn-danger fw-bold{% else %}btn-outline-secondary{% endif %} rounded-pill">
+            Rejected
+        </a>
+        <a href="{{ url_for('admin.verifications', status='all') }}" class="btn btn-sm {% if current_status == 'all' %}btn-dark fw-bold{% else %}btn-outline-secondary{% endif %} rounded-pill">
+            All Records
+        </a>
+    </div>
+
+    <div class="row g-4">
+        {% for comp in companies %}
+            <div class="col-lg-6">
+                <div class="card p-4 border-0 shadow-sm h-100">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h5 class="fw-bold mb-0">{{ comp.company_name }}</h5>
+                            <small class="text-muted">Registered on {{ comp.created_at.strftime('%b %d, %Y') }}</small>
+                        </div>
+                        <span class="badge {% if comp.verification_status == 'approved' %}bg-success{% elif comp.verification_status == 'rejected' %}bg-danger{% else %}bg-warning text-dark{% endif %} px-2 py-1">
+                            {{ comp.verification_status|capitalize }}
+                        </span>
+                    </div>
+
+                    <div class="bg-light p-3 rounded mb-3 small">
+                        <div class="row g-2">
+                            <div class="col-6"><strong>GSTIN / CIN:</strong> {{ comp.registration_gst_number or 'Not provided' }}</div>
+                            <div class="col-6"><strong>Phone:</strong> {{ comp.phone }}</div>
+                            <div class="col-12"><strong>Official Email:</strong> <code>{{ comp.official_email }}</code></div>
+                            <div class="col-12"><strong>Website:</strong> <a href="{{ comp.website }}" target="_blank">{{ comp.website or 'N/A' }}</a></div>
+                            <div class="col-12"><strong>Location:</strong> {{ comp.address or '' }} {{ comp.city }}, {{ comp.state }} ({{ comp.country }})</div>
+                            <div class="col-12"><strong>Contact Person:</strong> {{ comp.contact_person_name or 'N/A' }} ({{ comp.contact_person_designation or 'N/A' }})</div>
+                        </div>
+                    </div>
+
+                    {% if comp.description %}
+                        <p class="small text-muted mb-3">{{ comp.description }}</p>
+                    {% endif %}
+
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-end gap-2 mt-auto pt-3 border-top">
+                        <!-- Reject Modal Trigger -->
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#rejectModal{{ comp.id }}">
+                            <i class="bi bi-x-circle me-1"></i>Reject
+                        </button>
+
+                        <!-- Approve Form -->
+                        <form method="POST" action="{{ url_for('admin.verify_company', company_id=comp.id, action='approve') }}" onsubmit="return confirm('Approve verification for {{ comp.company_name }}?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-success fw-semibold">
+                                <i class="bi bi-check-circle me-1"></i>Approve Employer
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reject Reason Modal -->
+            <div class="modal fade" id="rejectModal{{ comp.id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title fw-bold text-danger">Reject Company Verification</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form method="POST" action="{{ url_for('admin.verify_company', company_id=comp.id, action='reject') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="modal-body">
+                                <p class="small text-muted mb-3">Provide feedback to <strong>{{ comp.company_name }}</strong> explaining why their verification was rejected:</p>
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold">Rejection Reason</label>
+                                    <textarea class="form-control" name="rejection_reason" rows="3" placeholder="e.g. Invalid GST number, non-business email domain, or inability to confirm business identity..." required></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-danger fw-semibold">Confirm Rejection</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12 text-center py-5 text-muted">
+                <i class="bi bi-patch-check fs-1 text-secondary d-block mb-2"></i>
+                No companies found for the selected status.
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

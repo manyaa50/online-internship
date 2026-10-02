@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Students - SmartIntern Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 pb-2 border-bottom">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-people-fill text-primary me-2"></i>Registered Students</h3>
+            <p class="text-muted small mb-0">Total candidates registered on platform: {{ students|length }}</p>
+        </div>
+        <div>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Back to Admin Hub
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-muted small">
+                    <tr>
+                        <th>Candidate Name</th>
+                        <th>Academic Profile</th>
+                        <th>Contact Details</th>
+                        <th>Applications</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for st in students %}
+                        <tr>
+                            <td>
+                                <strong class="text-dark">{{ st.full_name }}</strong>
+                                <br>
+                                <small class="text-muted">Registered {{ st.created_at.strftime('%b %d, %Y') }}</small>
+                            </td>
+                            <td>
+                                <small class="d-block fw-semibold">{{ st.degree or 'Degree unset' }}</small>
+                                <small class="text-muted">{{ st.college_name or 'College unset' }} (CGPA: {{ st.cgpa or 'N/A' }})</small>
+                            </td>
+                            <td>
+                                <small class="d-block"><code>{{ st.user.email }}</code></small>
+                                <small class="text-muted">{{ st.phone }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">{{ st.applications.count() }} Applied</span>
+                            </td>
+                            <td>
+                                {% if st.user.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Blocked</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <form method="POST" action="{{ url_for('admin.toggle_user_block', user_id=st.user_id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    {% if st.user.is_active %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Block Student" onclick="return confirm('Block this student account?');">
+                                            <i class="bi bi-slash-circle me-1"></i>Block
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Unblock Student">
+                                            <i class="bi bi-check-circle me-1"></i>Unblock
+                                        </button>
+                                    {% endif %}
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">No students registered yet.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

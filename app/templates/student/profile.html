@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+
+{% block title %}Student Profile & Resumes - SmartIntern{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row g-4">
+        <!-- Left Column: Academic & Personal Profile -->
+        <div class="col-lg-7">
+            <div class="card p-4 border-0 shadow-sm">
+                <h4 class="fw-bold mb-3"><i class="bi bi-person-circle text-primary me-2"></i>My Student Profile</h4>
+                <p class="text-muted small mb-4">Keep your profile updated to increase selection rates and match relevant internships.</p>
+
+                <form method="POST" action="{{ url_for('student.profile') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Full Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="full_name" value="{{ student.full_name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Phone Number <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" name="phone" value="{{ student.phone }}" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-7">
+                            <label class="form-label small fw-semibold">College / University</label>
+                            <input type="text" class="form-control" name="college_name" value="{{ student.college_name or '' }}" placeholder="University / Institute name">
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label small fw-semibold">Degree / Program</label>
+                            <input type="text" class="form-control" name="degree" value="{{ student.degree or '' }}" placeholder="BCA / MCA / B.Tech">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Graduation Year</label>
+                            <input type="number" class="form-control" name="graduation_year" value="{{ student.graduation_year or '' }}" placeholder="e.g. 2026">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">CGPA / Percentage</label>
+                            <input type="number" step="0.01" class="form-control" name="cgpa" value="{{ student.cgpa or '' }}" placeholder="e.g. 8.5">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Skills & Tech Stack (comma separated)</label>
+                        <input type="text" class="form-control" name="skills" value="{{ student.skills or '' }}" placeholder="Python, Flask, JavaScript, SQL, Bootstrap, Git">
+                        <div class="form-text small">Used by our algorithm to recommend tailored internships.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">About Me / Bio</label>
+                        <textarea class="form-control" name="bio" rows="3" placeholder="Brief summary of your academic interests and career goals...">{{ student.bio or '' }}</textarea>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">LinkedIn Profile URL</label>
+                            <input type="url" class="form-control" name="linkedin_url" value="{{ student.linkedin_url or '' }}" placeholder="https://linkedin.com/in/username">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">GitHub / Portfolio URL</label>
+                            <input type="url" class="form-control" name="github_url" value="{{ student.github_url or '' }}" placeholder="https://github.com/username">
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold text-secondary mt-4 mb-2">Internship Preferences</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Preferred Domain</label>
+                            <input type="text" class="form-control" name="preferred_domain" value="{{ student.preferred_domain or '' }}" placeholder="e.g. Web Development">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Preferred Location</label>
+                            <select class="form-select" name="preferred_location">
+                                <option value="Remote" {% if student.preferred_location == 'Remote' %}selected{% endif %}>Remote (Work From Home)</option>
+                                <option value="On-site" {% if student.preferred_location == 'On-site' %}selected{% endif %}>On-site (Office)</option>
+                                <option value="Hybrid" {% if student.preferred_location == 'Hybrid' %}selected{% endif %}>Hybrid</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Preferred Duration</label>
+                            <input type="text" class="form-control" name="preferred_duration" value="{{ student.preferred_duration or '' }}" placeholder="e.g. 3 Months">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                        <i class="bi bi-check-lg me-1"></i>Save Profile
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Column: Resumes Management -->
+        <div class="col-lg-5">
+            <!-- Upload New Resume Card -->
+            <div class="card p-4 border-0 shadow-sm mb-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-cloud-arrow-up text-primary me-2"></i>Upload Resume</h5>
+                <form method="POST" action="{{ url_for('student.upload_resume') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Select File (PDF or DOCX, max 8MB)</label>
+                        <input class="form-control" type="file" name="resume_file" accept=".pdf,.docx" required>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="is_primary" id="makePrimaryCheck" checked>
+                        <label class="form-check-label small" for="makePrimaryCheck">
+                            Set as primary resume for 1-click applications
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-outline-primary w-100 fw-semibold">
+                        <i class="bi bi-upload me-1"></i>Upload & Save Resume
+                    </button>
+                </form>
+            </div>
+
+            <!-- Uploaded Resumes List -->
+            <div class="card border-0 shadow-sm p-3">
+                <h6 class="fw-bold text-muted text-uppercase small mb-3">My Uploaded Resumes ({{ resumes|length }})</h6>
+                <div class="list-group list-group-flush">
+                    {% for res in resumes %}
+                        <div class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                <i class="bi bi-file-earmark-pdf fs-3 text-danger flex-shrink-0"></i>
+                                <div class="text-truncate">
+                                    <h6 class="mb-0 text-truncate small fw-bold">{{ res.original_name }}</h6>
+                                    <small class="text-muted">
+                                        {{ (res.file_size / 1024)|round(1) }} KB &bull; {{ res.uploaded_at.strftime('%b %d, %Y') }}
+                                    </small>
+                                    {% if res.is_primary %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle ms-1">Primary</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-1 flex-shrink-0">
+                                <a href="{{ url_for('student.download_resume', resume_id=res.id) }}" class="btn btn-sm btn-outline-secondary" title="Download">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('student.delete_resume', resume_id=res.id) }}" onsubmit="return confirm('Are you sure you want to delete this resume?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4 text-muted small">
+                            <i class="bi bi-file-earmark-plus fs-2 text-secondary d-block mb-1"></i>
+                            No resume uploaded yet.<br>Upload your resume above to start applying!
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

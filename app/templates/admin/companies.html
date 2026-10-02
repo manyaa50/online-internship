@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Companies - SmartIntern Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 pb-2 border-bottom">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-buildings-fill text-primary me-2"></i>Registered Companies</h3>
+            <p class="text-muted small mb-0">Total employers registered on the platform: {{ companies|length }}</p>
+        </div>
+        <div>
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Back to Admin Hub
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-muted small">
+                    <tr>
+                        <th>Company</th>
+                        <th>Official Contact</th>
+                        <th>GST / Reg No.</th>
+                        <th>Verification</th>
+                        <th>Account Status</th>
+                        <th>Postings</th>
+                        <th class="text-end">User Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for comp in companies %}
+                        <tr>
+                            <td>
+                                <strong class="text-dark">{{ comp.company_name }}</strong>
+                                <br>
+                                <small class="text-muted"><a href="{{ comp.website }}" target="_blank">{{ comp.website or 'No website' }}</a></small>
+                            </td>
+                            <td>
+                                <small class="d-block"><code>{{ comp.official_email }}</code></small>
+                                <small class="text-muted">{{ comp.phone }}</small>
+                            </td>
+                            <td>
+                                <small class="text-secondary">{{ comp.registration_gst_number or 'N/A' }}</small>
+                            </td>
+                            <td>
+                                {% if comp.verification_status == 'approved' %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">Approved</span>
+                                {% elif comp.verification_status == 'rejected' %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Rejected</span>
+                                {% else %}
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if comp.user.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Blocked</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">{{ comp.internships.count() }}</span>
+                            </td>
+                            <td class="text-end">
+                                <form method="POST" action="{{ url_for('admin.toggle_user_block', user_id=comp.user_id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    {% if comp.user.is_active %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Block Company Account" onclick="return confirm('Block this company from accessing the portal?');">
+                                            <i class="bi bi-slash-circle me-1"></i>Block
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Unblock Company Account">
+                                            <i class="bi bi-check-circle me-1"></i>Unblock
+                                        </button>
+                                    {% endif %}
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">No companies registered yet.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Postings - SmartIntern{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 pb-2 border-bottom">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-briefcase text-primary me-2"></i>Manage Internship Postings</h3>
+            <p class="text-muted small mb-0">Monitor listing status, safety checks, and candidate pipelines</p>
+        </div>
+        <div>
+            <a href="{{ url_for('company.create_internship') }}" class="btn btn-primary btn-sm {% if not company.is_verified %}disabled{% endif %}">
+                <i class="bi bi-plus-circle me-1"></i>Post New Internship
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-muted small">
+                    <tr>
+                        <th>Position / Category</th>
+                        <th>Stipend & Location</th>
+                        <th>Deadline</th>
+                        <th>Scam Risk Rating</th>
+                        <th>Posting Status</th>
+                        <th>Candidates</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in internships %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('internships.detail', internship_id=item.id) }}" class="fw-bold text-dark text-decoration-none">
+                                    {{ item.title }}
+                                </a>
+                                <br>
+                                <span class="badge bg-light text-secondary border small">{{ item.category.name }}</span>
+                            </td>
+                            <td>
+                                <span class="text-success fw-bold small">₹{{ "{:,.0f}".format(item.stipend_amount) }}/mo</span>
+                                <br>
+                                <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ item.location_type|capitalize }}</small>
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ item.application_deadline.strftime('%b %d, %Y') }}</small>
+                            </td>
+                            <td>
+                                {% if item.scam_check %}
+                                    {% if item.scam_check.risk_level == 'Low' %}
+                                        <span class="badge badge-risk-low px-2 py-1" title="{{ item.scam_check.summary_notes }}">
+                                            <i class="bi bi-shield-check me-1"></i>Low ({{ item.scam_check.risk_score }}/100)
+                                        </span>
+                                    {% elif item.scam_check.risk_level == 'Medium' %}
+                                        <span class="badge badge-risk-medium px-2 py-1" title="{{ item.scam_check.summary_notes }}">
+                                            <i class="bi bi-exclamation-triangle me-1"></i>Medium ({{ item.scam_check.risk_score }}/100)
+                                        </span>
+                                    {% else %}
+                                        <span class="badge badge-risk-high px-2 py-1" title="{{ item.scam_check.summary_notes }}">
+                                            <i class="bi bi-shield-slash-fill me-1"></i>High Flagged ({{ item.scam_check.risk_score }}/100)
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-secondary">Unchecked</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.status == 'active' %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Active</span>
+                                {% elif item.status == 'flagged' %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1" title="Held for admin review">Held (Flagged)</span>
+                                {% elif item.status == 'closed' %}
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">Closed</span>
+                                {% elif item.status == 'rejected' %}
+                                    <span class="badge bg-dark text-white px-2 py-1">Delisted by Admin</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('company.applicants', internship_id=item.id) }}" class="btn btn-sm btn-outline-primary position-relative">
+                                    <i class="bi bi-people me-1"></i>{{ item.applications.count() }}
+                                </a>
+                            </td>
+                            <td class="text-end">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        Options
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                        <li>
+                                            <a class="dropdown-item" href="{{ url_for('internships.detail', internship_id=item.id) }}">
+                                                <i class="bi bi-eye me-2"></i>Preview Listing
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="{{ url_for('company.edit_internship', internship_id=item.id) }}">
+                                                <i class="bi bi-pencil me-2"></i>Edit Details
+                                            </a>
+                                        </li>
+                                        {% if item.status == 'active' %}
+                                            <li>
+                                                <form method="POST" action="{{ url_for('company.toggle_status', internship_id=item.id, new_status='closed') }}">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    <button type="submit" class="dropdown-item text-warning">
+                                                        <i class="bi bi-pause-circle me-2"></i>Close Applications
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        {% elif item.status == 'closed' %}
+                                            <li>
+                                                <form method="POST" action="{{ url_for('company.toggle_status', internship_id=item.id, new_status='active') }}">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    <button type="submit" class="dropdown-item text-success">
+                                                        <i class="bi bi-play-circle me-2"></i>Re-open Listing
+                                                    </button>
+                                                </form>
+                                            </li>
+                                        {% endif %}
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form method="POST" action="{{ url_for('company.delete_internship', internship_id=item.id) }}" onsubmit="return confirm('Permanently delete this internship posting?');">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="dropdown-item text-danger">
+                                                    <i class="bi bi-trash me-2"></i>Delete Posting
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-folder-plus fs-1 text-secondary d-block mb-2"></i>
+                                No internship postings created yet.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

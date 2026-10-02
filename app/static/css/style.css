@@ -1,0 +1,179 @@
+/* ==========================================================================
+   Smart Online Internship Management System with Scam Prevention
+   Custom Theme Stylesheet
+   ========================================================================== */
+
+:root {
+    --primary-color: #2563eb;
+    --primary-dark: #1d4ed8;
+    --primary-light: #eff6ff;
+    --secondary-color: #475569;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: #1e293b;
+    background-color: #f8fafc;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1 0 auto;
+}
+
+/* Navbar */
+.navbar-custom {
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--primary-color) !important;
+}
+
+.nav-link {
+    font-weight: 500;
+    color: #475569 !important;
+    transition: color 0.15s ease-in-out;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: var(--primary-color) !important;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+    color: #ffffff;
+    padding: 4.5rem 0;
+    border-radius: 0 0 2rem 2rem;
+}
+
+/* Feature Cards */
+.card {
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: var(--hover-shadow);
+}
+
+.card-hover:hover {
+    transform: translateY(-4px);
+}
+
+/* Risk Badges */
+.badge-risk-low {
+    background-color: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.badge-risk-medium {
+    background-color: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.badge-risk-high {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* Scam Safety Banner */
+.scam-alert-card {
+    border-left: 5px solid;
+    border-radius: 0.5rem;
+    background-color: #ffffff;
+}
+
+.scam-alert-card.low {
+    border-left-color: var(--success-color);
+}
+
+.scam-alert-card.medium {
+    border-left-color: var(--warning-color);
+    background-color: #fffbeb;
+}
+
+.scam-alert-card.high {
+    border-left-color: var(--danger-color);
+    background-color: #fef2f2;
+}
+
+/* Application Status Badges */
+.status-applied {
+    background-color: #e0f2fe;
+    color: #0369a1;
+}
+
+.status-under-review {
+    background-color: #fef3c7;
+    color: #b45309;
+}
+
+.status-selected {
+    background-color: #dcfce7;
+    color: #15803d;
+}
+
+.status-rejected {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+.status-completed {
+    background-color: #f3e8ff;
+    color: #6b21a8;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+
+/* Quick Demo Login Pills */
+.demo-pill {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.demo-pill:hover {
+    background-color: #e2e8f0;
+}
+
+/* Footer */
+footer {
+    background-color: #0f172a;
+    color: #94a3b8;
+    margin-top: auto;
+}
+
+footer a {
+    color: #cbd5e1;
+    text-decoration: none;
+}
+
+footer a:hover {
+    color: #ffffff;
+    text-decoration: underline;
+}
