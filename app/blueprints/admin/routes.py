@@ -132,6 +132,7 @@ def flagged_internships():
     flagged_list = (
         Internship.query
         .join(ScamCheck)
+        .filter(Internship.status.in_(['flagged', 'rejected']))
         .order_by(ScamCheck.risk_score.desc(), Internship.created_at.desc())
         .all()
     )

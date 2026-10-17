@@ -16,12 +16,20 @@
                     <p class="text-muted small mb-0">Postings undergo automatic safety evaluation before student publication.</p>
                 </div>
 
-                <form method="POST" action="{% if is_edit %}{{ url_for('company.edit_internship', internship_id=internship.id) }}{% else %}{{ url_for('company.create_internship') }}{% endif %}">
+                <form method="POST"
+                      action="{% if is_edit %}{{ url_for('company.edit_internship', internship_id=internship.id) }}{% else %}{{ url_for('company.create_internship') }}{% endif %}"
+                      class="needs-validation"
+                      novalidate
+                      id="internshipForm">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Internship Role Title <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="title" value="{{ internship.title if is_edit else '' }}" placeholder="e.g. Python Backend Developer Intern" required>
+                        <input type="text" class="form-control" name="title"
+                               value="{{ internship.title if is_edit else '' }}"
+                               placeholder="e.g. Python Backend Developer Intern"
+                               required minlength="5">
+                        <div class="invalid-feedback">Please enter an internship title (min 5 characters).</div>
                     </div>
 
                     <div class="row g-3 mb-3">
@@ -33,31 +41,45 @@
                                     <option value="{{ cat.id }}" {% if is_edit and internship.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
                                 {% endfor %}
                             </select>
+                            <div class="invalid-feedback">Please select a domain category.</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold">Application Deadline <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" name="application_deadline" value="{{ internship.application_deadline.strftime('%Y-%m-%d') if is_edit else '' }}" required>
+                            <input type="date" class="form-control" name="application_deadline"
+                                   value="{{ internship.application_deadline.strftime('%Y-%m-%d') if is_edit else '' }}"
+                                   required>
+                            <div class="invalid-feedback">Please set an application deadline.</div>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Detailed Job Description <span class="text-danger">*</span></label>
-                        <textarea class="form-control" name="description" rows="4" placeholder="Comprehensive overview of the internship role and project scope (min 30 words recommended)..." required>{{ internship.description if is_edit else '' }}</textarea>
+                        <textarea class="form-control" name="description" rows="4"
+                                  placeholder="Comprehensive overview of the internship role and project scope (min 30 words recommended)..."
+                                  required minlength="50">{{ internship.description if is_edit else '' }}</textarea>
+                        <div class="invalid-feedback">Please provide a description (at least 50 characters).</div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Key Responsibilities</label>
-                        <textarea class="form-control" name="responsibilities" rows="3" placeholder="Bullet points of daily tasks and deliverables...">{{ internship.responsibilities if is_edit else '' }}</textarea>
+                        <textarea class="form-control" name="responsibilities" rows="3"
+                                  placeholder="Bullet points of daily tasks and deliverables...">{{ internship.responsibilities if is_edit else '' }}</textarea>
                     </div>
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold">Eligibility Criteria <span class="text-danger">*</span></label>
-                            <textarea class="form-control" name="eligibility" rows="2" placeholder="e.g. BCA/B.Tech students graduating in 2026/2027" required>{{ internship.eligibility if is_edit else '' }}</textarea>
+                            <textarea class="form-control" name="eligibility" rows="2"
+                                      placeholder="e.g. BCA/B.Tech students graduating in 2026/2027"
+                                      required>{{ internship.eligibility if is_edit else '' }}</textarea>
+                            <div class="invalid-feedback">Please specify eligibility criteria.</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold">Skills Required (Comma separated) <span class="text-danger">*</span></label>
-                            <textarea class="form-control" name="skills_required" rows="2" placeholder="e.g. Python, Flask, MySQL, Git, REST APIs" required>{{ internship.skills_required if is_edit else '' }}</textarea>
+                            <textarea class="form-control" name="skills_required" rows="2"
+                                      placeholder="e.g. Python, Flask, MySQL, Git, REST APIs"
+                                      required>{{ internship.skills_required if is_edit else '' }}</textarea>
+                            <div class="invalid-feedback">Please list required skills.</div>
                         </div>
                     </div>
 
@@ -72,11 +94,15 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small fw-semibold">City / Location</label>
-                            <input type="text" class="form-control" name="location_city" value="{{ internship.location_city if is_edit else '' }}" placeholder="e.g. Bengaluru / Remote">
+                            <input type="text" class="form-control" name="location_city"
+                                   value="{{ internship.location_city if is_edit else '' }}"
+                                   placeholder="e.g. Bengaluru / Remote">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small fw-semibold">Duration</label>
-                            <input type="text" class="form-control" name="duration_text" value="{{ internship.duration_text if is_edit else '3 Months' }}" placeholder="e.g. 3 Months">
+                            <input type="text" class="form-control" name="duration_text"
+                                   value="{{ internship.duration_text if is_edit else '3 Months' }}"
+                                   placeholder="e.g. 3 Months">
                         </div>
                     </div>
 
@@ -93,30 +119,41 @@
                             <label class="form-label small fw-semibold">Monthly Stipend Amount (INR)</label>
                             <div class="input-group">
                                 <span class="input-group-text">₹</span>
-                                <input type="number" step="500" class="form-control" name="stipend_amount" value="{{ internship.stipend_amount if is_edit else '15000' }}" placeholder="15000">
+                                <input type="number" step="500" class="form-control" name="stipend_amount"
+                                       value="{{ internship.stipend_amount if is_edit else '15000' }}"
+                                       placeholder="15000" min="0">
                             </div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small fw-semibold">No. of Openings</label>
-                            <input type="number" min="1" class="form-control" name="openings_count" value="{{ internship.openings_count if is_edit else '2' }}">
+                            <input type="number" min="1" class="form-control" name="openings_count"
+                                   value="{{ internship.openings_count if is_edit else '2' }}">
                         </div>
                     </div>
 
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold">Contact Email for Queries</label>
-                            <input type="email" class="form-control" name="contact_email" value="{{ internship.contact_email if is_edit else company.official_email }}">
+                            <input type="email" class="form-control" name="contact_email"
+                                   value="{{ internship.contact_email if is_edit else company.official_email }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-semibold">Contact Phone Number</label>
-                            <input type="tel" class="form-control" name="contact_phone" value="{{ internship.contact_phone if is_edit else company.phone }}">
+                            <input type="tel" class="form-control" name="contact_phone"
+                                   value="{{ internship.contact_phone if is_edit else company.phone }}">
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center">
                         <a href="{{ url_for('company.manage_internships') }}" class="btn btn-outline-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-primary px-4 fw-semibold">
-                            {% if is_edit %}<i class="bi bi-check2-circle me-1"></i>Save & Screen Changes{% else %}<i class="bi bi-shield-check me-1"></i>Publish & Screen Posting{% endif %}
+                        <button type="submit" class="btn btn-primary px-4 fw-semibold" id="submitBtn">
+                            {% if is_edit %}
+                                <i class="bi bi-check2-circle me-1"></i>
+                                <span id="submitBtnText">Save &amp; Screen Changes</span>
+                            {% else %}
+                                <i class="bi bi-shield-check me-1"></i>
+                                <span id="submitBtnText">Publish &amp; Screen Posting</span>
+                            {% endif %}
                         </button>
                     </div>
                 </form>
@@ -172,4 +209,52 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    'use strict';
+
+    var form = document.getElementById('internshipForm');
+    var submitBtn = document.getElementById('submitBtn');
+    var submitBtnText = document.getElementById('submitBtnText');
+    var _submitted = false;
+
+    if (!form) return;
+
+    form.addEventListener('submit', function (event) {
+        // Bootstrap built-in HTML5 validation check
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+            form.classList.add('was-validated');
+            // Scroll to first invalid field
+            var firstInvalid = form.querySelector(':invalid');
+            if (firstInvalid) {
+                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstInvalid.focus();
+            }
+            return;
+        }
+
+        // Prevent duplicate submission
+        if (_submitted) {
+            event.preventDefault();
+            return;
+        }
+        _submitted = true;
+
+        // Show loading state on submit button
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            if (submitBtnText) {
+                submitBtnText.textContent = 'Submitting & Scanning...';
+            }
+        }
+
+        form.classList.add('was-validated');
+    });
+})();
+</script>
 {% endblock %}
