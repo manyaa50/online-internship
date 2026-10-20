@@ -135,122 +135,188 @@ def create_internship():
     categories = InternshipCategory.query.order_by(InternshipCategory.name.asc()).all()
 
     if request.method == 'POST':
-        title = request.form.get('title', '').strip()
-        category_id = request.form.get('category_id')
-        description = request.form.get('description', '').strip()
-        responsibilities = request.form.get('responsibilities', '').strip()
-        eligibility = request.form.get('eligibility', '').strip()
-        skills = request.form.get('skills_required', '').strip()
-        duration_text = request.form.get('duration_text', '3 Months').strip()
-        duration_weeks = request.form.get('duration_weeks', 12)
-        location_type = request.form.get('location_type', 'remote')
-        location_city = request.form.get('location_city', '').strip()
-        stipend_type = request.form.get('stipend_type', 'paid')
-        stipend_amount = request.form.get('stipend_amount', 0)
-        openings_count = request.form.get('openings_count', 1)
-        deadline_str = request.form.get('application_deadline')
-        contact_email = request.form.get('contact_email', company.official_email).strip()
-        contact_phone = request.form.get('contact_phone', company.phone).strip()
+        # ── Collect all form fields ────────────────────────────────────
+        title                   = request.form.get('title', '').strip()
+        category_id             = request.form.get('category_id', '').strip()
+        description             = request.form.get('description', '').strip()
+        responsibilities        = request.form.get('responsibilities', '').strip()
+        eligibility             = request.form.get('eligibility', '').strip()
+        skills                  = request.form.get('skills_required', '').strip()
+        duration_text           = request.form.get('duration_text', '3 Months').strip()
+        duration_weeks_raw      = request.form.get('duration_weeks', '8').strip()
+        location_type           = request.form.get('location_type', 'remote')
+        location_city           = request.form.get('location_city', '').strip()
+        stipend_type            = request.form.get('stipend_type', 'paid')
+        stipend_amount_raw      = request.form.get('stipend_amount', '0').strip()
+        openings_raw            = request.form.get('openings_count', '1').strip()
+        start_date_str          = request.form.get('start_date', '').strip()
+        deadline_str            = request.form.get('application_deadline', '').strip()
+        application_instructions= request.form.get('application_instructions', '').strip()
+        contact_email           = request.form.get('contact_email', company.official_email).strip()
+        contact_phone           = request.form.get('contact_phone', company.phone or '').strip()
 
-        # Validation
-        if not title or not category_id or not description or not eligibility or not deadline_str:
-            flash('Please complete all required fields.', 'warning')
-            return render_template('company/post_internship.html', categories=categories)
+        errors = []
 
+        # ── Backend validation ─────────────────────────────────────────
+        if not title or len(title) < 5:
+            errors.append('Internship title is required and must be at least 5 characters.')
+        if not category_id:
+            errors.append('Please select a domain category.')
+        if not description or len(description) < 50:
+            errors.append('Description is required (minimum 50 characters).')
+        if not eligibility:
+            errors.append('Eligibility criteria are required.')
+        if not skills:
+            errors.append('Skills required field cannot be empty.')
+        if not deadline_str:
+            errors.append('Application deadline is required.')
+        if not contact_email:
+            errors.append('Contact email is required.')
+
+        # Date validation
+        deadline = None
+        if deadline_str:
+            try:
+                deadline = datetime.strptime(deadline_str, '%Y-%m-%d').date()
+                from datetime import date as date_type
+                if deadline < date_type.today():
+                    errors.append('Application deadline cannot be in the past.')
+            except ValueError:
+                errors.append('Invalid deadline date format.')
+
+        start_date = None
+        if start_date_str:
+            try:
+                start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                errors.append('Invalid start date format.')
+
+        # Numeric validation
         try:
-            deadline = datetime.strptime(deadline_str, '%Y-%m-%d').date()
-        except ValueError:
-            flash('Invalid deadline date format. Please use YYYY-MM-DD.', 'danger')
-            return render_template('company/post_internship.html', categories=categories)
-
-        try:
-            stipend_amt = float(stipend_amount) if stipend_type == 'paid' else 0.0
-        except ValueError:
+            stipend_amt = float(stipend_amount_raw) if stipend_type == 'paid' else 0.0
+            if stipend_type == 'paid' and stipend_amt < 0:
+                errors.append('Stipend amount cannot be negative.')
+        except (ValueError, TypeError):
             stipend_amt = 0.0
 
+        try:
+            duration_weeks = int(duration_weeks_raw) if duration_weeks_raw else 8
+            if duration_weeks < 1 or duration_weeks > 104:
+                errors.append('Duration weeks must be between 1 and 104.')
+        except ValueError:
+            duration_weeks = 8
+
+        try:
+            openings_count = int(openings_raw) if openings_raw else 1
+            if openings_count < 1:
+                errors.append('Number of openings must be at least 1.')
+        except ValueError:
+            openings_count = 1
+
+        # Location validation
+        if location_type in ('on-site', 'hybrid') and not location_city:
+            errors.append('City/location is required for On-site and Hybrid work modes.')
+
+        if errors:
+            for err in errors:
+                flash(err, 'danger')
+            # Re-render with user's data preserved
+            form_data = request.form.to_dict()
+            return render_template('company/post_internship.html',
+                                   categories=categories, company=company,
+                                   form_data=form_data, is_edit=False)
+
+        # ── Scam Detection ─────────────────────────────────────────────
         posting_data = {
-            'title': title,
-            'description': description,
-            'responsibilities': responsibilities,
-            'eligibility': eligibility,
-            'skills_required': skills,
-            'stipend_type': stipend_type,
-            'stipend_amount': stipend_amt,
-            'contact_email': contact_email,
+            'title': title, 'description': description,
+            'responsibilities': responsibilities, 'eligibility': eligibility,
+            'skills_required': skills, 'stipend_type': stipend_type,
+            'stipend_amount': stipend_amt, 'contact_email': contact_email,
             'contact_phone': contact_phone
         }
-
-        # Run automated Scam Detection Engine
         scan_result = ScamDetector.evaluate_posting(posting_data, company=company)
-        risk_score = scan_result['risk_score']
-        risk_level = scan_result['risk_level']
-        triggered_rules_json = json.dumps(scan_result['triggered_rules'])
+        risk_score  = scan_result['risk_score']
+        risk_level  = scan_result['risk_level']
+        posting_status = 'flagged' if risk_level == 'High' else 'active'
 
-        # Determine initial posting status based on risk level
+        # ── Persist to DB ──────────────────────────────────────────────
+        try:
+            internship = Internship(
+                company_id=company.id,
+                category_id=int(category_id),
+                title=title,
+                description=description,
+                responsibilities=responsibilities,
+                eligibility=eligibility,
+                skills_required=skills,
+                duration_weeks=duration_weeks,
+                duration_text=duration_text,
+                location_type=location_type,
+                location_city=location_city,
+                stipend_type=stipend_type,
+                stipend_amount=stipend_amt,
+                openings_count=openings_count,
+                start_date=start_date,
+                application_deadline=deadline,
+                application_instructions=application_instructions,
+                contact_email=contact_email,
+                contact_phone=contact_phone,
+                status=posting_status
+            )
+            db.session.add(internship)
+            db.session.flush()   # get internship.id before commit
+
+            scam_check = ScamCheck(
+                internship_id=internship.id,
+                risk_score=risk_score,
+                risk_level=risk_level,
+                triggered_rules=json.dumps(scan_result['triggered_rules']),
+                summary_notes=scan_result['summary_notes'],
+                is_reviewed_by_admin=(risk_level == 'Low'),
+                admin_verdict='approved' if risk_level == 'Low' else 'pending'
+            )
+            db.session.add(scam_check)
+
+            # Notify admins on high-risk
+            if risk_level == 'High':
+                for admin_user in User.query.filter_by(role='admin').all():
+                    db.session.add(Notification(
+                        user_id=admin_user.id,
+                        title='High Risk Internship Flagged',
+                        message=(f"'{title}' by {company.company_name} "
+                                 f"scored {risk_score}/100 and was held for review."),
+                        category='scam_alert',
+                        link_url=url_for('admin.flagged_internships')
+                    ))
+
+            db.session.commit()
+
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f'Internship creation failed: {e}')
+            flash('A database error occurred while saving the internship. Please try again.', 'danger')
+            form_data = request.form.to_dict()
+            return render_template('company/post_internship.html',
+                                   categories=categories, company=company,
+                                   form_data=form_data, is_edit=False)
+
+        # ── Success flash ──────────────────────────────────────────────
         if risk_level == 'High':
-            posting_status = 'flagged'
-        else:
-            posting_status = 'active'
-
-        # Create Internship Record
-        internship = Internship(
-            company_id=company.id,
-            category_id=int(category_id),
-            title=title,
-            description=description,
-            responsibilities=responsibilities,
-            eligibility=eligibility,
-            skills_required=skills,
-            duration_weeks=int(duration_weeks) if duration_weeks else 8,
-            duration_text=duration_text,
-            location_type=location_type,
-            location_city=location_city,
-            stipend_type=stipend_type,
-            stipend_amount=stipend_amt,
-            openings_count=int(openings_count) if openings_count else 1,
-            application_deadline=deadline,
-            contact_email=contact_email,
-            contact_phone=contact_phone,
-            status=posting_status
-        )
-        db.session.add(internship)
-        db.session.flush()
-
-        # Create Scam Check Record
-        scam_check = ScamCheck(
-            internship_id=internship.id,
-            risk_score=risk_score,
-            risk_level=risk_level,
-            triggered_rules=triggered_rules_json,
-            summary_notes=scan_result['summary_notes'],
-            is_reviewed_by_admin=(risk_level == 'Low'),
-            admin_verdict='approved' if risk_level == 'Low' else 'pending'
-        )
-        db.session.add(scam_check)
-
-        # Notify Admins if high risk
-        if risk_level == 'High':
-            admins = User.query.filter_by(role='admin').all()
-            for admin_user in admins:
-                notif = Notification(
-                    user_id=admin_user.id,
-                    title="⚠️ Scam Alert: High Risk Internship Flagged",
-                    message=f"Internship '{title}' by {company.company_name} triggered high scam score ({risk_score}/100) and has been held.",
-                    category="scam_alert",
-                    link_url=url_for('admin.flagged_internships')
-                )
-                db.session.add(notif)
-
-            flash(f'Notice: Your posting scored a high risk rating ({risk_score}/100) on our automated safety scanner and has been queued for administrator review.', 'warning')
+            flash(f'Internship submitted but flagged (risk score {risk_score}/100). '
+                  'An admin will review it before it goes live.', 'warning')
         elif risk_level == 'Medium':
-            flash(f'Your internship has been published! Note: Safety scanner detected minor warnings (Score: {risk_score}/100) displayed to students.', 'info')
+            flash(f'Internship published with a caution notice (score {risk_score}/100) '
+                  'visible to students.', 'info')
         else:
-            flash('Internship verified by safety screening and published successfully!', 'success')
+            flash('Internship published and verified successfully! '
+                  'Students can now discover and apply.', 'success')
 
-        db.session.commit()
         return redirect(url_for('company.manage_internships'))
 
-    return render_template('company/post_internship.html', categories=categories, company=company)
+    return render_template('company/post_internship.html',
+                           categories=categories, company=company,
+                           form_data={}, is_edit=False)
+
 
 
 @company_bp.route('/internships')
@@ -271,24 +337,33 @@ def edit_internship(internship_id):
     categories = InternshipCategory.query.order_by(InternshipCategory.name.asc()).all()
 
     if request.method == 'POST':
-        internship.title = request.form.get('title', '').strip()
-        internship.category_id = int(request.form.get('category_id'))
-        internship.description = request.form.get('description', '').strip()
-        internship.responsibilities = request.form.get('responsibilities', '').strip()
-        internship.eligibility = request.form.get('eligibility', '').strip()
-        internship.skills_required = request.form.get('skills_required', '').strip()
-        internship.duration_text = request.form.get('duration_text', '3 Months').strip()
-        internship.duration_weeks = int(request.form.get('duration_weeks', 12))
-        internship.location_type = request.form.get('location_type', 'remote')
-        internship.location_city = request.form.get('location_city', '').strip()
-        internship.stipend_type = request.form.get('stipend_type', 'paid')
-        
+        internship.title              = request.form.get('title', '').strip()
+        internship.category_id        = int(request.form.get('category_id'))
+        internship.description        = request.form.get('description', '').strip()
+        internship.responsibilities   = request.form.get('responsibilities', '').strip()
+        internship.eligibility        = request.form.get('eligibility', '').strip()
+        internship.skills_required    = request.form.get('skills_required', '').strip()
+        internship.duration_text      = request.form.get('duration_text', '3 Months').strip()
+        internship.duration_weeks     = int(request.form.get('duration_weeks', 12))
+        internship.location_type      = request.form.get('location_type', 'remote')
+        internship.location_city      = request.form.get('location_city', '').strip()
+        internship.stipend_type       = request.form.get('stipend_type', 'paid')
+        internship.openings_count     = int(request.form.get('openings_count', 1))
+        internship.application_instructions = request.form.get('application_instructions', '').strip()
+        internship.contact_email      = request.form.get('contact_email', company.official_email).strip()
+        internship.contact_phone      = request.form.get('contact_phone', company.phone or '').strip()
+
+        start_date_str = request.form.get('start_date', '').strip()
+        if start_date_str:
+            try:
+                internship.start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            except ValueError:
+                pass
+
         try:
             internship.stipend_amount = float(request.form.get('stipend_amount', 0)) if internship.stipend_type == 'paid' else 0.0
         except ValueError:
             internship.stipend_amount = 0.0
-
-        internship.openings_count = int(request.form.get('openings_count', 1))
         deadline_str = request.form.get('application_deadline')
         if deadline_str:
             internship.application_deadline = datetime.strptime(deadline_str, '%Y-%m-%d').date()

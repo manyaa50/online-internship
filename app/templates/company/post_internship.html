@@ -5,15 +5,39 @@
 {% block content %}
 <div class="container py-4">
     <div class="row g-4">
-        <!-- Form Column -->
+
+        <!-- ═══════════════════════════ FORM COLUMN ═══════════════════════════ -->
         <div class="col-lg-8">
             <div class="card p-4 border-0 shadow-sm">
+
+                <!-- Header -->
                 <div class="mb-4 pb-2 border-bottom">
                     <h3 class="fw-bold mb-1">
                         <i class="bi bi-briefcase-fill text-primary me-2"></i>
-                        {% if is_edit %}Edit Internship Opportunity{% else %}Post a Verified Internship{% endif %}
+                        {% if is_edit %}Edit Internship Opportunity{% else %}Post a New Internship{% endif %}
                     </h3>
-                    <p class="text-muted small mb-0">Postings undergo automatic safety evaluation before student publication.</p>
+                    <p class="text-muted small mb-0">
+                        Every posting is automatically screened by our scam detection engine before going live.
+                    </p>
+                </div>
+
+                <!-- Company Info Bar -->
+                <div class="d-flex align-items-center gap-3 p-3 bg-light rounded mb-4 small">
+                    <i class="bi bi-building text-primary fs-4"></i>
+                    <div>
+                        <strong>{{ company.company_name }}</strong>
+                        {% if company.is_verified %}
+                            <span class="badge bg-success-subtle text-success border ms-1">
+                                <i class="bi bi-patch-check-fill me-1"></i>Verified
+                            </span>
+                        {% endif %}
+                        {% if company.website %}
+                            <span class="text-muted ms-2">
+                                <i class="bi bi-globe me-1"></i>
+                                <a href="{{ company.website }}" target="_blank" class="text-decoration-none">{{ company.website }}</a>
+                            </span>
+                        {% endif %}
+                    </div>
                 </div>
 
                 <form method="POST"
@@ -23,182 +47,287 @@
                       id="internshipForm">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
+                    <!-- ── Section 1: Basic Info ─────────────────────── -->
+                    <h6 class="fw-bold text-uppercase text-muted small mb-3 mt-2">
+                        <i class="bi bi-info-circle me-1"></i>Basic Information
+                    </h6>
+
+                    <!-- Title -->
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Internship Role Title <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="title"
-                               value="{{ internship.title if is_edit else '' }}"
+                        <label class="form-label fw-semibold small">
+                            Internship Role Title <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" name="title" id="title"
+                               value="{{ internship.title if is_edit else form_data.get('title', '') }}"
                                placeholder="e.g. Python Backend Developer Intern"
-                               required minlength="5">
-                        <div class="invalid-feedback">Please enter an internship title (min 5 characters).</div>
+                               required minlength="5" maxlength="150">
+                        <div class="invalid-feedback">Please enter a title (min 5 characters).</div>
                     </div>
 
+                    <!-- Category + Deadline -->
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Domain / Category <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold small">
+                                Domain / Category <span class="text-danger">*</span>
+                            </label>
                             <select class="form-select" name="category_id" required>
-                                <option value="" disabled {% if not is_edit %}selected{% endif %}>Select Domain...</option>
+                                <option value="" disabled
+                                    {% if not is_edit and not form_data.get('category_id') %}selected{% endif %}>
+                                    Select Domain...
+                                </option>
                                 {% for cat in categories %}
-                                    <option value="{{ cat.id }}" {% if is_edit and internship.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                                    <option value="{{ cat.id }}"
+                                        {% if (is_edit and internship.category_id == cat.id)
+                                           or (form_data.get('category_id')|string == cat.id|string) %}
+                                            selected
+                                        {% endif %}>
+                                        {{ cat.name }}
+                                    </option>
                                 {% endfor %}
                             </select>
-                            <div class="invalid-feedback">Please select a domain category.</div>
+                            <div class="invalid-feedback">Please select a domain.</div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Application Deadline <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold small">
+                                Application Deadline <span class="text-danger">*</span>
+                            </label>
                             <input type="date" class="form-control" name="application_deadline"
-                                   value="{{ internship.application_deadline.strftime('%Y-%m-%d') if is_edit else '' }}"
+                                   value="{{ internship.application_deadline.strftime('%Y-%m-%d') if is_edit else form_data.get('application_deadline', '') }}"
                                    required>
-                            <div class="invalid-feedback">Please set an application deadline.</div>
+                            <div class="invalid-feedback">Please set a future deadline date.</div>
                         </div>
                     </div>
 
+                    <!-- ── Section 2: Description ────────────────────── -->
+                    <hr class="my-4">
+                    <h6 class="fw-bold text-uppercase text-muted small mb-3">
+                        <i class="bi bi-file-text me-1"></i>Description & Requirements
+                    </h6>
+
+                    <!-- Description -->
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Detailed Job Description <span class="text-danger">*</span></label>
-                        <textarea class="form-control" name="description" rows="4"
-                                  placeholder="Comprehensive overview of the internship role and project scope (min 30 words recommended)..."
-                                  required minlength="50">{{ internship.description if is_edit else '' }}</textarea>
-                        <div class="invalid-feedback">Please provide a description (at least 50 characters).</div>
+                        <label class="form-label fw-semibold small">
+                            Detailed Job Description <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" name="description" rows="5"
+                                  placeholder="Comprehensive overview of the internship role, team, and project scope (min 50 characters)..."
+                                  required minlength="50">{{ internship.description if is_edit else form_data.get('description', '') }}</textarea>
+                        <div class="form-text small">Minimum 50 characters. Clear descriptions attract better applicants.</div>
+                        <div class="invalid-feedback">Description is required (at least 50 characters).</div>
                     </div>
 
+                    <!-- Responsibilities -->
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Key Responsibilities</label>
-                        <textarea class="form-control" name="responsibilities" rows="3"
-                                  placeholder="Bullet points of daily tasks and deliverables...">{{ internship.responsibilities if is_edit else '' }}</textarea>
+                        <label class="form-label fw-semibold small">Key Responsibilities</label>
+                        <textarea class="form-control" name="responsibilities" rows="4"
+                                  placeholder="1. Build REST APIs with Flask&#10;2. Write unit tests&#10;3. Participate in code reviews...">{{ internship.responsibilities if is_edit else form_data.get('responsibilities', '') }}</textarea>
+                        <div class="form-text small">Use numbered points for clarity.</div>
                     </div>
 
+                    <!-- Eligibility + Skills -->
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Eligibility Criteria <span class="text-danger">*</span></label>
-                            <textarea class="form-control" name="eligibility" rows="2"
-                                      placeholder="e.g. BCA/B.Tech students graduating in 2026/2027"
-                                      required>{{ internship.eligibility if is_edit else '' }}</textarea>
+                            <label class="form-label fw-semibold small">
+                                Eligibility Criteria <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" name="eligibility" rows="3"
+                                      placeholder="e.g. BCA / B.Tech CSE students graduating 2026 or 2027, min 65% aggregate"
+                                      required>{{ internship.eligibility if is_edit else form_data.get('eligibility', '') }}</textarea>
                             <div class="invalid-feedback">Please specify eligibility criteria.</div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Skills Required (Comma separated) <span class="text-danger">*</span></label>
-                            <textarea class="form-control" name="skills_required" rows="2"
+                            <label class="form-label fw-semibold small">
+                                Skills Required <span class="text-danger">*</span>
+                                <small class="text-muted fw-normal">(comma-separated)</small>
+                            </label>
+                            <textarea class="form-control" name="skills_required" rows="3"
                                       placeholder="e.g. Python, Flask, MySQL, Git, REST APIs"
-                                      required>{{ internship.skills_required if is_edit else '' }}</textarea>
+                                      required>{{ internship.skills_required if is_edit else form_data.get('skills_required', '') }}</textarea>
                             <div class="invalid-feedback">Please list required skills.</div>
                         </div>
                     </div>
 
+                    <!-- ── Section 3: Duration & Location ───────────── -->
+                    <hr class="my-4">
+                    <h6 class="fw-bold text-uppercase text-muted small mb-3">
+                        <i class="bi bi-calendar3 me-1"></i>Duration, Dates & Location
+                    </h6>
+
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
-                            <label class="form-label small fw-semibold">Workplace Mode</label>
-                            <select class="form-select" name="location_type">
-                                <option value="remote" {% if is_edit and internship.location_type == 'remote' %}selected{% endif %}>Remote / Work From Home</option>
-                                <option value="on-site" {% if is_edit and internship.location_type == 'on-site' %}selected{% endif %}>On-site (Office)</option>
-                                <option value="hybrid" {% if is_edit and internship.location_type == 'hybrid' %}selected{% endif %}>Hybrid</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-semibold">City / Location</label>
-                            <input type="text" class="form-control" name="location_city"
-                                   value="{{ internship.location_city if is_edit else '' }}"
-                                   placeholder="e.g. Bengaluru / Remote">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-semibold">Duration</label>
+                            <label class="form-label fw-semibold small">Duration Label</label>
                             <input type="text" class="form-control" name="duration_text"
-                                   value="{{ internship.duration_text if is_edit else '3 Months' }}"
+                                   value="{{ internship.duration_text if is_edit else form_data.get('duration_text', '3 Months') }}"
                                    placeholder="e.g. 3 Months">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Duration (weeks)</label>
+                            <input type="number" min="1" max="104" class="form-control" name="duration_weeks"
+                                   value="{{ internship.duration_weeks if is_edit else form_data.get('duration_weeks', '12') }}"
+                                   placeholder="12">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Expected Start Date</label>
+                            <input type="date" class="form-control" name="start_date"
+                                   value="{{ internship.start_date.strftime('%Y-%m-%d') if is_edit and internship.start_date else form_data.get('start_date', '') }}">
+                            <div class="form-text small">Optional — leave blank if flexible.</div>
                         </div>
                     </div>
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
-                            <label class="form-label small fw-semibold">Stipend Type</label>
-                            <select class="form-select" name="stipend_type">
-                                <option value="paid" {% if is_edit and internship.stipend_type == 'paid' %}selected{% endif %}>Paid Monthly Stipend</option>
-                                <option value="unpaid" {% if is_edit and internship.stipend_type == 'unpaid' %}selected{% endif %}>Unpaid</option>
-                                <option value="performance-based" {% if is_edit and internship.stipend_type == 'performance-based' %}selected{% endif %}>Performance Based</option>
+                            <label class="form-label fw-semibold small">Work Mode <span class="text-danger">*</span></label>
+                            <select class="form-select" name="location_type" id="locationTypeSelect">
+                                <option value="remote"
+                                    {% if (is_edit and internship.location_type == 'remote') or form_data.get('location_type') == 'remote' %}selected{% endif %}>
+                                    Remote / Work From Home
+                                </option>
+                                <option value="on-site"
+                                    {% if (is_edit and internship.location_type == 'on-site') or form_data.get('location_type') == 'on-site' %}selected{% endif %}>
+                                    On-site (Office)
+                                </option>
+                                <option value="hybrid"
+                                    {% if (is_edit and internship.location_type == 'hybrid') or form_data.get('location_type') == 'hybrid' %}selected{% endif %}>
+                                    Hybrid
+                                </option>
                             </select>
                         </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold small">
+                                City / Location <span id="cityRequired" class="text-danger d-none">*</span>
+                            </label>
+                            <input type="text" class="form-control" name="location_city" id="locationCityInput"
+                                   value="{{ internship.location_city if is_edit else form_data.get('location_city', '') }}"
+                                   placeholder="e.g. Bengaluru, Karnataka">
+                            <div class="form-text small">Required for On-site and Hybrid modes.</div>
+                        </div>
+                    </div>
+
+                    <!-- ── Section 4: Stipend ────────────────────────── -->
+                    <hr class="my-4">
+                    <h6 class="fw-bold text-uppercase text-muted small mb-3">
+                        <i class="bi bi-cash-coin me-1"></i>Stipend & Openings
+                    </h6>
+
+                    <div class="row g-3 mb-3">
                         <div class="col-md-4">
-                            <label class="form-label small fw-semibold">Monthly Stipend Amount (INR)</label>
+                            <label class="form-label fw-semibold small">Stipend Type</label>
+                            <select class="form-select" name="stipend_type" id="stipendTypeSelect">
+                                <option value="paid"
+                                    {% if (is_edit and internship.stipend_type == 'paid') or form_data.get('stipend_type','paid') == 'paid' %}selected{% endif %}>
+                                    Paid Monthly Stipend
+                                </option>
+                                <option value="unpaid"
+                                    {% if (is_edit and internship.stipend_type == 'unpaid') or form_data.get('stipend_type') == 'unpaid' %}selected{% endif %}>
+                                    Unpaid (Voluntary)
+                                </option>
+                                <option value="performance-based"
+                                    {% if (is_edit and internship.stipend_type == 'performance-based') or form_data.get('stipend_type') == 'performance-based' %}selected{% endif %}>
+                                    Performance Based
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-4" id="stipendAmountGroup">
+                            <label class="form-label fw-semibold small">Monthly Amount (INR)</label>
                             <div class="input-group">
                                 <span class="input-group-text">₹</span>
-                                <input type="number" step="500" class="form-control" name="stipend_amount"
-                                       value="{{ internship.stipend_amount if is_edit else '15000' }}"
-                                       placeholder="15000" min="0">
+                                <input type="number" step="500" min="0" class="form-control" name="stipend_amount"
+                                       value="{{ internship.stipend_amount if is_edit else form_data.get('stipend_amount', '15000') }}"
+                                       placeholder="15000">
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label small fw-semibold">No. of Openings</label>
-                            <input type="number" min="1" class="form-control" name="openings_count"
-                                   value="{{ internship.openings_count if is_edit else '2' }}">
+                            <label class="form-label fw-semibold small">Number of Openings</label>
+                            <input type="number" min="1" max="500" class="form-control" name="openings_count"
+                                   value="{{ internship.openings_count if is_edit else form_data.get('openings_count', '2') }}">
                         </div>
                     </div>
 
-                    <div class="row g-3 mb-4">
+                    <!-- ── Section 5: Contact & Instructions ─────────── -->
+                    <hr class="my-4">
+                    <h6 class="fw-bold text-uppercase text-muted small mb-3">
+                        <i class="bi bi-envelope me-1"></i>Contact & Application Instructions
+                    </h6>
+
+                    <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Contact Email for Queries</label>
-                            <input type="email" class="form-control" name="contact_email"
-                                   value="{{ internship.contact_email if is_edit else company.official_email }}">
+                            <label class="form-label fw-semibold small">Contact Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" name="contact_email" required
+                                   value="{{ internship.contact_email if is_edit else form_data.get('contact_email', company.official_email) }}">
+                            <div class="invalid-feedback">A valid contact email is required.</div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label small fw-semibold">Contact Phone Number</label>
+                            <label class="form-label fw-semibold small">Contact Phone</label>
                             <input type="tel" class="form-control" name="contact_phone"
-                                   value="{{ internship.contact_phone if is_edit else company.phone }}">
+                                   value="{{ internship.contact_phone if is_edit else form_data.get('contact_phone', company.phone or '') }}">
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-between align-items-center">
-                        <a href="{{ url_for('company.manage_internships') }}" class="btn btn-outline-secondary">Cancel</a>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold small">Application Instructions</label>
+                        <textarea class="form-control" name="application_instructions" rows="3"
+                                  placeholder="e.g. Send your resume to careers@company.com with subject 'Intern Application — [Your Name]'. Portfolio link is required for design roles.">{{ internship.application_instructions if is_edit else form_data.get('application_instructions', '') }}</textarea>
+                        <div class="form-text small">Optional — specific steps you want applicants to follow.</div>
+                    </div>
+
+                    <!-- Submit -->
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                        <a href="{{ url_for('company.manage_internships') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Cancel
+                        </a>
                         <button type="submit" class="btn btn-primary px-4 fw-semibold" id="submitBtn">
-                            {% if is_edit %}
-                                <i class="bi bi-check2-circle me-1"></i>
-                                <span id="submitBtnText">Save &amp; Screen Changes</span>
-                            {% else %}
-                                <i class="bi bi-shield-check me-1"></i>
-                                <span id="submitBtnText">Publish &amp; Screen Posting</span>
-                            {% endif %}
+                            <i class="bi bi-shield-check me-1" id="submitIcon"></i>
+                            <span id="submitBtnText">
+                                {% if is_edit %}Save &amp; Re-screen Posting{% else %}Publish &amp; Screen Posting{% endif %}
+                            </span>
                         </button>
                     </div>
                 </form>
             </div>
         </div>
 
-        <!-- Safety Rules Guidance Sidebar -->
+        <!-- ═══════════════════════════ SIDEBAR ══════════════════════════════ -->
         <div class="col-lg-4">
+
+            <!-- Scam Prevention Rules -->
             <div class="card p-4 border-0 shadow-sm bg-light mb-3">
                 <div class="d-flex align-items-center gap-2 mb-3 text-primary">
                     <i class="bi bi-shield-lock-fill fs-4"></i>
                     <h5 class="fw-bold mb-0">Scam Prevention Engine</h5>
                 </div>
                 <p class="small text-muted mb-3">
-                    Every posting is evaluated automatically by our weighted heuristic scanner. To guarantee immediate approval with a green safety badge, ensure you adhere to the following:
+                    Every posting is automatically evaluated by our heuristic safety scanner. Follow these rules to get a green safety badge:
                 </p>
-
-                <div class="d-flex flex-column gap-3 small">
+                <div class="d-flex flex-column gap-2 small">
                     <div class="d-flex gap-2">
                         <i class="bi bi-x-circle-fill text-danger flex-shrink-0 mt-1"></i>
-                        <span><strong>Never mention fees:</strong> Any mention of registration, security deposit, or training fees triggers an automatic <strong>High Risk</strong> flag.</span>
+                        <span><strong>No fees:</strong> Registration fee, security deposit, or training charges = automatic <strong>High Risk</strong> flag.</span>
                     </div>
-
                     <div class="d-flex gap-2">
                         <i class="bi bi-x-circle-fill text-danger flex-shrink-0 mt-1"></i>
-                        <span><strong>Avoid unrealistic claims:</strong> Do not claim "100% guaranteed job", "direct selection without interview", or stipends > ₹60,000/mo.</span>
+                        <span><strong>No unrealistic claims:</strong> "Guaranteed placement", "direct selection without interview", or stipends above ₹60,000/month.</span>
                     </div>
-
                     <div class="d-flex gap-2">
                         <i class="bi bi-exclamation-triangle-fill text-warning flex-shrink-0 mt-1"></i>
-                        <span><strong>No off-platform redirects:</strong> Do not instruct candidates to message on Telegram or WhatsApp.</span>
+                        <span><strong>Use official email:</strong> Using Gmail/Yahoo instead of your company domain raises the risk score.</span>
                     </div>
-
+                    <div class="d-flex gap-2">
+                        <i class="bi bi-exclamation-triangle-fill text-warning flex-shrink-0 mt-1"></i>
+                        <span><strong>No off-platform redirects:</strong> Do not ask candidates to message on Telegram or WhatsApp.</span>
+                    </div>
                     <div class="d-flex gap-2">
                         <i class="bi bi-check-circle-fill text-success flex-shrink-0 mt-1"></i>
-                        <span><strong>Provide clear details:</strong> List clear responsibilities and technical skills required to pass the vagueness check.</span>
+                        <span><strong>Be specific:</strong> Detailed responsibilities and clear skill requirements reduce the vagueness score.</span>
                     </div>
                 </div>
             </div>
 
+            <!-- Current scam score (edit mode only) -->
             {% if is_edit and internship.scam_check %}
-                <div class="card p-3 border-0 shadow-sm scam-alert-card {{ internship.scam_check.risk_level.lower() }}">
-                    <h6 class="fw-bold mb-2">Current Security Score</h6>
+                <div class="card p-3 border-0 shadow-sm scam-alert-card {{ internship.scam_check.risk_level.lower() }} mb-3">
+                    <h6 class="fw-bold mb-2">Current Safety Score</h6>
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="fw-bold fs-5">Score: {{ internship.scam_check.risk_score }}/100</span>
+                        <span class="fw-bold fs-5">{{ internship.scam_check.risk_score }}/100</span>
                         <span class="badge {% if internship.scam_check.risk_level == 'Low' %}badge-risk-low{% elif internship.scam_check.risk_level == 'Medium' %}badge-risk-medium{% else %}badge-risk-high{% endif %}">
                             {{ internship.scam_check.risk_level }} Risk
                         </span>
@@ -206,6 +335,22 @@
                     <p class="small text-muted mb-0">{{ internship.scam_check.summary_notes }}</p>
                 </div>
             {% endif %}
+
+            <!-- Company Profile Card -->
+            <div class="card p-3 border-0 shadow-sm">
+                <h6 class="fw-bold mb-2"><i class="bi bi-building me-1 text-primary"></i>Posting as</h6>
+                <p class="fw-semibold mb-1">{{ company.company_name }}</p>
+                {% if company.city %}
+                    <small class="text-muted d-block"><i class="bi bi-geo-alt me-1"></i>{{ company.city }}, {{ company.country }}</small>
+                {% endif %}
+                {% if company.website %}
+                    <small class="text-muted d-block">
+                        <i class="bi bi-globe me-1"></i>
+                        <a href="{{ company.website }}" target="_blank" class="text-decoration-none">{{ company.website }}</a>
+                    </small>
+                {% endif %}
+                <small class="text-muted d-block"><i class="bi bi-envelope me-1"></i>{{ company.official_email }}</small>
+            </div>
         </div>
     </div>
 </div>
@@ -216,20 +361,58 @@
 (function () {
     'use strict';
 
-    var form = document.getElementById('internshipForm');
-    var submitBtn = document.getElementById('submitBtn');
-    var submitBtnText = document.getElementById('submitBtnText');
+    var form       = document.getElementById('internshipForm');
+    var submitBtn  = document.getElementById('submitBtn');
+    var submitText = document.getElementById('submitBtnText');
+    var submitIcon = document.getElementById('submitIcon');
     var _submitted = false;
 
     if (!form) return;
 
+    // ── Stipend amount group toggle ──────────────────────────────────
+    var stipendSelect = document.getElementById('stipendTypeSelect');
+    var stipendGroup  = document.getElementById('stipendAmountGroup');
+    function toggleStipend() {
+        if (stipendSelect.value === 'unpaid') {
+            stipendGroup.style.opacity = '0.4';
+            stipendGroup.querySelector('input').disabled = true;
+        } else {
+            stipendGroup.style.opacity = '1';
+            stipendGroup.querySelector('input').disabled = false;
+        }
+    }
+    if (stipendSelect) {
+        stipendSelect.addEventListener('change', toggleStipend);
+        toggleStipend();
+    }
+
+    // ── City required indicator for on-site/hybrid ──────────────────
+    var locationSelect  = document.getElementById('locationTypeSelect');
+    var cityInput       = document.getElementById('locationCityInput');
+    var cityRequired    = document.getElementById('cityRequired');
+    function toggleCityRequired() {
+        var needsCity = ['on-site', 'hybrid'].includes(locationSelect.value);
+        if (cityRequired) cityRequired.classList.toggle('d-none', !needsCity);
+        if (cityInput)    cityInput.required = needsCity;
+    }
+    if (locationSelect) {
+        locationSelect.addEventListener('change', toggleCityRequired);
+        toggleCityRequired();
+    }
+
+    // ── Set min date for deadline = today ───────────────────────────
+    var deadlineInput = document.querySelector('input[name="application_deadline"]');
+    if (deadlineInput && !deadlineInput.value) {
+        var today = new Date().toISOString().split('T')[0];
+        deadlineInput.min = today;
+    }
+
+    // ── Form validation + double-submit guard ───────────────────────
     form.addEventListener('submit', function (event) {
-        // Bootstrap built-in HTML5 validation check
         if (!form.checkValidity()) {
             event.preventDefault();
             event.stopPropagation();
             form.classList.add('was-validated');
-            // Scroll to first invalid field
             var firstInvalid = form.querySelector(':invalid');
             if (firstInvalid) {
                 firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -238,19 +421,14 @@
             return;
         }
 
-        // Prevent duplicate submission
-        if (_submitted) {
-            event.preventDefault();
-            return;
-        }
+        if (_submitted) { event.preventDefault(); return; }
         _submitted = true;
 
-        // Show loading state on submit button
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            if (submitBtnText) {
-                submitBtnText.textContent = 'Submitting & Scanning...';
-            }
+        if (submitBtn)  submitBtn.disabled = true;
+        if (submitText) submitText.textContent = 'Submitting & Scanning for Safety...';
+        if (submitIcon) {
+            submitIcon.className = 'spinner-border spinner-border-sm me-1';
+            submitIcon.setAttribute('role', 'status');
         }
 
         form.classList.add('was-validated');

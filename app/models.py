@@ -209,7 +209,9 @@ class Internship(db.Model):
     stipend_amount = db.Column(db.Numeric(10, 2), default=0.00)
     stipend_currency = db.Column(db.String(10), default='INR')
     openings_count = db.Column(db.Integer, default=1)
+    start_date = db.Column(db.Date, nullable=True)
     application_deadline = db.Column(db.Date, nullable=False)
+    application_instructions = db.Column(db.Text, nullable=True)
     contact_email = db.Column(db.String(150), nullable=False)
     contact_phone = db.Column(db.String(20), nullable=True)
     status = db.Column(
