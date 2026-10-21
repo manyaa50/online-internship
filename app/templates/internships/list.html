@@ -23,7 +23,19 @@
                     <!-- Keyword Search -->
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Keywords</label>
-                        <input type="text" class="form-control form-control-sm" name="keyword" value="{{ keyword or '' }}" placeholder="Title, skills, company...">
+                        <input type="text" class="form-control form-control-sm" name="keyword" value="{{ keyword or '' }}" placeholder="Title, company, etc...">
+                    </div>
+
+                    <!-- Skills Required Search -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Required Skills</label>
+                        <input type="text" class="form-control form-control-sm" name="skills" value="{{ skills or '' }}" placeholder="e.g. Python, React, SQL">
+                    </div>
+
+                    <!-- Eligibility Search -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Eligibility</label>
+                        <input type="text" class="form-control form-control-sm" name="eligibility" value="{{ eligibility or '' }}" placeholder="e.g. BCA, B.Tech, Final Year">
                     </div>
 
                     <!-- Category -->
@@ -35,6 +47,19 @@
                                 <option value="{{ cat.id }}" {% if selected_category == cat.id %}selected{% endif %}>{{ cat.name }}</option>
                             {% endfor %}
                         </select>
+                    </div>
+
+                    <!-- Duration Range in Weeks -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Duration (Weeks)</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="number" min="0" step="1" class="form-control form-control-sm" name="min_duration" value="{{ min_duration or '' }}" placeholder="Min wks">
+                            </div>
+                            <div class="col-6">
+                                <input type="number" min="0" step="1" class="form-control form-control-sm" name="max_duration" value="{{ max_duration or '' }}" placeholder="Max wks">
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Location Mode -->
@@ -158,14 +183,14 @@
                     <ul class="pagination justify-content-center">
                         {% if pagination.has_prev %}
                             <li class="page-item">
-                                <a class="page-link" href="{{ url_for('internships.list_internships', page=pagination.prev_num, keyword=keyword, category=selected_category, location_type=selected_location_type, city=selected_city, stipend_type=selected_stipend_type, min_stipend=min_stipend) }}">Previous</a>
+                                <a class="page-link" href="{{ url_for('internships.list_internships', page=pagination.prev_num, keyword=keyword, skills=skills, eligibility=eligibility, category=selected_category, location_type=selected_location_type, city=selected_city, stipend_type=selected_stipend_type, min_stipend=min_stipend, min_duration=min_duration, max_duration=max_duration) }}">Previous</a>
                             </li>
                         {% endif %}
 
                         {% for p in pagination.iter_pages() %}
                             {% if p %}
                                 <li class="page-item {% if p == pagination.page %}active{% endif %}">
-                                    <a class="page-link" href="{{ url_for('internships.list_internships', page=p, keyword=keyword, category=selected_category, location_type=selected_location_type, city=selected_city, stipend_type=selected_stipend_type, min_stipend=min_stipend) }}">{{ p }}</a>
+                                    <a class="page-link" href="{{ url_for('internships.list_internships', page=p, keyword=keyword, skills=skills, eligibility=eligibility, category=selected_category, location_type=selected_location_type, city=selected_city, stipend_type=selected_stipend_type, min_stipend=min_stipend, min_duration=min_duration, max_duration=max_duration) }}">{{ p }}</a>
                                 </li>
                             {% else %}
                                 <li class="page-item disabled"><span class="page-link">…</span></li>
@@ -174,7 +199,7 @@
 
                         {% if pagination.has_next %}
                             <li class="page-item">
-                                <a class="page-link" href="{{ url_for('internships.list_internships', page=pagination.next_num, keyword=keyword, category=selected_category, location_type=selected_location_type, city=selected_city, stipend_type=selected_stipend_type, min_stipend=min_stipend) }}">Next</a>
+                                <a class="page-link" href="{{ url_for('internships.list_internships', page=pagination.next_num, keyword=keyword, skills=skills, eligibility=eligibility, category=selected_category, location_type=selected_location_type, city=selected_city, stipend_type=selected_stipend_type, min_stipend=min_stipend, min_duration=min_duration, max_duration=max_duration) }}">Next</a>
                             </li>
                         {% endif %}
                     </ul>

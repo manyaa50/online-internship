@@ -32,10 +32,12 @@ class Config:
     UPLOAD_FOLDER = os.path.join(BASE_DIR, 'app', 'static', 'uploads')
     # Private resume storage outside app/static
     RESUME_FOLDER = os.path.join(BASE_DIR, 'instance', 'uploads', 'resumes')
-    DOCS_FOLDER = os.path.join(UPLOAD_FOLDER, 'company_docs')
+    # Private company verification document storage outside app/static
+    DOCS_FOLDER = os.path.join(BASE_DIR, 'instance', 'uploads', 'company_docs')
     MAX_CONTENT_LENGTH = 8 * 1024 * 1024  # 8 MB max upload
     ALLOWED_RESUME_EXTENSIONS = {'pdf', 'docx'}
     ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+    ALLOWED_DOCS_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg'}
 
     # Security settings
     WTF_CSRF_ENABLED = True

@@ -147,6 +147,7 @@ class Company(db.Model):
     contact_person_name = db.Column(db.String(100), nullable=True)
     contact_person_designation = db.Column(db.String(100), nullable=True)
     logo = db.Column(db.String(255), default='default_company.png')
+    verification_document = db.Column(db.String(255), nullable=True)
     verification_status = db.Column(
         db.Enum('pending', 'approved', 'rejected', name='verification_statuses'),
         default='pending',

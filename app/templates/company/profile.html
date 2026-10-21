@@ -66,6 +66,19 @@
                         </div>
                     </div>
 
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Verification Document (Certificate of Incorporation, GST, or Business Registration)</label>
+                        <input type="file" class="form-control" name="verification_document" accept=".pdf,.png,.jpg,.jpeg">
+                        <div class="form-text small">Accepted formats: PDF, PNG, JPG/JPEG (max 8MB). Stored privately for administrator verification only.</div>
+                        {% if company.verification_document %}
+                            <div class="mt-2 small text-success">
+                                <i class="bi bi-file-earmark-check-fill me-1"></i>Current Document: <strong>{{ company.verification_document }}</strong>
+                                <a href="{{ url_for('company.view_document') }}" target="_blank" class="ms-2 btn btn-xs btn-outline-primary py-0 px-2">View Document</a>
+                            </div>
+                        {% endif %}
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Corporate Office Address</label>
                         <textarea class="form-control" name="address" rows="2" placeholder="Full street address">{{ company.address or '' }}</textarea>

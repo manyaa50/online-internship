@@ -112,6 +112,7 @@ CREATE TABLE `companies` (
     `contact_person_name` VARCHAR(100) DEFAULT NULL,
     `contact_person_designation` VARCHAR(100) DEFAULT NULL,
     `logo` VARCHAR(255) DEFAULT 'default_company.png',
+    `verification_document` VARCHAR(255) DEFAULT NULL,
     `verification_status` ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

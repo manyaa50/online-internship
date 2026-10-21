@@ -209,6 +209,15 @@
                         <div>Applications for this internship closed on {{ internship.application_deadline.strftime('%b %d, %Y') }}.</div>
                     </div>
                 {% elif current_user.is_authenticated and current_user.is_student %}
+                    {% if internship.scam_check and internship.scam_check.risk_level == 'Medium' %}
+                        <!-- Medium-Risk Safety Warning Notice -->
+                        <div class="alert alert-warning border border-warning d-flex align-items-start gap-2 mb-3">
+                            <i class="bi bi-exclamation-triangle-fill fs-5 text-warning flex-shrink-0 mt-1"></i>
+                            <div class="small">
+                                <strong>Safety Warning:</strong> This opportunity has a Medium scam risk assessment. You will be required to acknowledge that you have read the safety warning before submitting your application.
+                            </div>
+                        </div>
+                    {% endif %}
                     <!-- Active Student Apply Button -->
                     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
                         <button type="button" class="btn btn-primary btn-lg px-5 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#applyInternshipModal">
@@ -343,6 +352,25 @@
                             <label class="form-label small fw-semibold">Why are you a good fit? (Optional Statement)</label>
                             <textarea class="form-control" name="cover_letter" rows="3" placeholder="Briefly highlight your technical projects, passion for the role, and relevant experience..."></textarea>
                         </div>
+
+                        {% if internship.scam_check and internship.scam_check.risk_level == 'Medium' %}
+                            <!-- Mandatory Medium-Risk Safety Acknowledgment -->
+                            <div class="alert alert-warning border border-warning small mb-3">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+                                    <strong>Safety Advisory Notice (Medium Risk)</strong>
+                                </div>
+                                <p class="mb-2">
+                                    This internship posting has been flagged with moderate risk indicators. Never send money, pay registration/kit charges, or disclose sensitive personal/banking credentials.
+                                </p>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="acknowledge_safety_warning" id="acknowledgeSafetyWarning" value="yes" required>
+                                    <label class="form-check-label fw-semibold text-dark" for="acknowledgeSafetyWarning">
+                                        I have read the safety warning
+                                    </label>
+                                </div>
+                            </div>
+                        {% endif %}
 
                         <div class="p-2 bg-light rounded border small text-muted">
                             <i class="bi bi-shield-check text-success me-1"></i> Your contact email and phone will be shared with the verified employer for interview scheduling.

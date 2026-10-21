@@ -54,6 +54,16 @@
                             <div class="col-12"><strong>Website:</strong> <a href="{{ comp.website }}" target="_blank">{{ comp.website or 'N/A' }}</a></div>
                             <div class="col-12"><strong>Location:</strong> {{ comp.address or '' }} {{ comp.city }}, {{ comp.state }} ({{ comp.country }})</div>
                             <div class="col-12"><strong>Contact Person:</strong> {{ comp.contact_person_name or 'N/A' }} ({{ comp.contact_person_designation or 'N/A' }})</div>
+                            <div class="col-12 mt-1">
+                                <strong>Verification Doc:</strong>
+                                {% if comp.verification_document %}
+                                    <a href="{{ url_for('admin.download_verification_document', company_id=comp.id) }}" target="_blank" class="badge bg-primary text-decoration-none px-2 py-1 ms-1">
+                                        <i class="bi bi-file-earmark-arrow-down me-1"></i>View Uploaded Document
+                                    </a>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary ms-1">Not Uploaded</span>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
 

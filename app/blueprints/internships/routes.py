@@ -13,13 +13,62 @@ internships_bp = Blueprint('internships', __name__)
 
 @internships_bp.route('/')
 def list_internships():
-    page = request.args.get('page', 1, type=int)
+    # Safe page parameter parsing
+    try:
+        page = int(request.args.get('page', 1))
+        if page < 1:
+            page = 1
+    except (ValueError, TypeError):
+        page = 1
+
     keyword = request.args.get('keyword', '').strip()
-    category_id = request.args.get('category', type=int)
+    skills = request.args.get('skills', '').strip()
+    eligibility = request.args.get('eligibility', '').strip()
+
+    # Safe category parameter parsing
+    category_id = None
+    cat_raw = request.args.get('category')
+    if cat_raw is not None and str(cat_raw).strip():
+        try:
+            category_id = int(str(cat_raw).strip())
+        except (ValueError, TypeError):
+            category_id = None
+
     location_type = request.args.get('location_type', '').strip()
     location_city = request.args.get('city', '').strip()
     stipend_type = request.args.get('stipend_type', '').strip()
-    min_stipend = request.args.get('min_stipend', type=float)
+
+    # Safe numeric validation: min_stipend
+    min_stipend = None
+    min_stip_raw = request.args.get('min_stipend')
+    if min_stip_raw is not None and str(min_stip_raw).strip():
+        try:
+            val = float(str(min_stip_raw).strip())
+            if val > 0:
+                min_stipend = val
+        except (ValueError, TypeError):
+            min_stipend = None
+
+    # Safe numeric validation: min_duration and max_duration in weeks
+    min_duration = None
+    min_dur_raw = request.args.get('min_duration')
+    if min_dur_raw is not None and str(min_dur_raw).strip():
+        try:
+            val = int(str(min_dur_raw).strip())
+            if val >= 0:
+                min_duration = val
+        except (ValueError, TypeError):
+            min_duration = None
+
+    max_duration = None
+    max_dur_raw = request.args.get('max_duration')
+    if max_dur_raw is not None and str(max_dur_raw).strip():
+        try:
+            val = int(str(max_dur_raw).strip())
+            if val >= 0:
+                max_duration = val
+        except (ValueError, TypeError):
+            max_duration = None
 
     # Base query: only active listings from approved companies with active user accounts
     query = (
@@ -42,6 +91,12 @@ def list_internships():
             (Company.company_name.ilike(search_filter))
         )
 
+    if skills:
+        query = query.filter(Internship.skills_required.ilike(f"%{skills}%"))
+
+    if eligibility:
+        query = query.filter(Internship.eligibility.ilike(f"%{eligibility}%"))
+
     if category_id:
         query = query.filter(Internship.category_id == category_id)
 
@@ -54,8 +109,14 @@ def list_internships():
     if stipend_type:
         query = query.filter(Internship.stipend_type == stipend_type)
 
-    if min_stipend is not None and min_stipend > 0:
+    if min_stipend is not None:
         query = query.filter(Internship.stipend_amount >= min_stipend)
+
+    if min_duration is not None:
+        query = query.filter(Internship.duration_weeks >= min_duration)
+
+    if max_duration is not None:
+        query = query.filter(Internship.duration_weeks <= max_duration)
 
     # Order by newest
     query = query.order_by(Internship.created_at.desc())
@@ -70,11 +131,15 @@ def list_internships():
         internships=pagination.items,
         categories=categories,
         keyword=keyword,
+        skills=skills,
+        eligibility=eligibility,
         selected_category=category_id,
         selected_location_type=location_type,
         selected_city=location_city,
         selected_stipend_type=stipend_type,
-        min_stipend=min_stipend
+        min_stipend=min_stipend,
+        min_duration=min_duration,
+        max_duration=max_duration
     )
 
 
@@ -166,6 +231,13 @@ def apply(internship_id):
     if internship.status != 'active':
         flash('Applications for this posting are currently closed.', 'warning')
         return redirect(url_for('internships.detail', internship_id=internship.id))
+
+    # Medium-risk safety warning enforcement (server-side verification)
+    if internship.scam_check and internship.scam_check.risk_level == 'Medium':
+        acknowledged = request.form.get('acknowledge_safety_warning')
+        if not acknowledged or str(acknowledged).lower() not in ('1', 'true', 'yes', 'on'):
+            flash('You must acknowledge that you have read the safety warning before applying to a Medium-risk internship.', 'danger')
+            return redirect(url_for('internships.detail', internship_id=internship.id))
 
     # Prevent duplicate application
     existing = Application.query.filter_by(

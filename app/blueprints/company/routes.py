@@ -2,11 +2,12 @@ import os
 import uuid
 import json
 from datetime import datetime
-from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, current_app, send_from_directory
 from flask_login import login_required, current_user
 from app.models import db, Company, Internship, InternshipCategory, Application, ScamCheck, Notification, User, CompanyVerification
 from app.decorators import role_required, company_verified_required
 from app.scam_detector import ScamDetector
+from app.utils import validate_verification_document
 
 company_bp = Blueprint('company', __name__)
 
@@ -106,6 +107,23 @@ def profile():
                 logo_file.save(logo_path)
                 company.logo = logo_name
 
+        # Handle Verification Document upload
+        doc_file = request.files.get('verification_document')
+        if doc_file and doc_file.filename:
+            is_valid, err_msg, meta = validate_verification_document(doc_file)
+            if not is_valid:
+                flash(err_msg, 'danger')
+                verifications = company.verifications.order_by(CompanyVerification.created_at.desc()).all() if company else []
+                return render_template('company/profile.html', company=company, verifications=verifications)
+
+
+            unique_doc_name = f"doc_{company.id}_{uuid.uuid4().hex[:8]}.{meta['ext']}"
+            docs_dir = current_app.config['DOCS_FOLDER']
+            os.makedirs(docs_dir, exist_ok=True)
+            doc_path = os.path.join(docs_dir, unique_doc_name)
+            doc_file.save(doc_path)
+            company.verification_document = unique_doc_name
+
         # If company was rejected and they updated their profile, reset status to pending for review
         if company.verification_status == 'rejected' and request.form.get('resubmit_verification'):
             company.verification_status = 'pending'
@@ -124,6 +142,28 @@ def profile():
 
     verifications = company.verifications.order_by(CompanyVerification.created_at.desc()).all() if company else []
     return render_template('company/profile.html', company=company, verifications=verifications)
+
+
+@company_bp.route('/document')
+@login_required
+@role_required('company')
+def view_document():
+    company = current_user.company_profile
+    if not company or not company.verification_document:
+        flash('No verification document has been uploaded.', 'warning')
+        return redirect(url_for('company.profile'))
+
+    docs_folder = current_app.config['DOCS_FOLDER']
+    file_path = os.path.join(docs_folder, company.verification_document)
+    if not os.path.isfile(file_path):
+        flash('Verification document file not found on server.', 'danger')
+        return redirect(url_for('company.profile'))
+
+    return send_from_directory(
+        docs_folder,
+        company.verification_document,
+        as_attachment=False
+    )
 
 
 @company_bp.route('/internships/create', methods=['GET', 'POST'])

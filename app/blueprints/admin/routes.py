@@ -1,5 +1,6 @@
+import os
 from datetime import datetime, timezone
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, send_from_directory
 from flask_login import login_required, current_user
 from app.models import (
     db, User, Admin, StudentProfile, Company, CompanyVerification,
@@ -150,6 +151,28 @@ def verify_company(company_id, action):
         flash(f'Error processing company verification: {str(e)}', 'danger')
 
     return redirect(url_for('admin.verifications'))
+
+
+@admin_bp.route('/verifications/document/<int:company_id>')
+@login_required
+@role_required('admin')
+def download_verification_document(company_id):
+    company = Company.query.get_or_404(company_id)
+    if not company.verification_document:
+        flash('No verification document has been uploaded by this company.', 'warning')
+        return redirect(url_for('admin.verifications'))
+
+    docs_folder = current_app.config['DOCS_FOLDER']
+    file_path = os.path.join(docs_folder, company.verification_document)
+    if not os.path.isfile(file_path):
+        flash('Verification document file not found on server.', 'danger')
+        return redirect(url_for('admin.verifications'))
+
+    return send_from_directory(
+        docs_folder,
+        company.verification_document,
+        as_attachment=False
+    )
 
 
 @admin_bp.route('/flagged-internships')
