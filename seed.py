@@ -1,6 +1,15 @@
 import os
+import sys
 import json
 from datetime import datetime, date, timedelta, timezone
+
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+
 from app import create_app
 from app.models import (
     db, User, Admin, StudentProfile, Resume, Company, CompanyVerification,
