@@ -1,11 +1,21 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
+
+from app import limiter
 from app.models import db, User, StudentProfile, Company, Notification
+from app.utils import (
+    is_safe_redirect_url,
+    validate_email_address,
+    validate_indian_phone,
+    validate_gstin,
+    validate_password
+)
 
 auth_bp = Blueprint('auth', __name__)
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute", methods=['POST'])
 def login():
     if current_user.is_authenticated:
         if current_user.is_admin:
@@ -26,6 +36,7 @@ def login():
 
         user = User.query.filter_by(email=email).first()
 
+        # Generic failure message to prevent email enumeration attacks
         if not user or not user.check_password(password):
             flash('Invalid email or password. Please try again.', 'danger')
             return render_template('auth/login.html')
@@ -37,10 +48,12 @@ def login():
         login_user(user, remember=remember)
         flash(f'Welcome back, {user.display_name}!', 'success')
 
+        # Open Redirect Prevention: strictly validate next target
         next_page = request.args.get('next')
-        if next_page and next_page.startswith('/'):
+        if next_page and is_safe_redirect_url(next_page):
             return redirect(next_page)
 
+        # Fallback to role-specific safe default destination
         if user.is_admin:
             return redirect(url_for('admin.dashboard'))
         elif user.is_company:
@@ -58,38 +71,53 @@ def register():
 
     if request.method == 'POST':
         role = request.form.get('role', 'student').strip().lower()
-        email = request.form.get('email', '').strip().lower()
+        email_raw = request.form.get('email', '').strip()
         password = request.form.get('password', '')
         confirm_password = request.form.get('confirm_password', '')
-        phone = request.form.get('phone', '').strip()
+        phone_raw = request.form.get('phone', '').strip()
 
-        # Validation
+        # 1. Role validation
         if role not in ['student', 'company']:
             flash('Invalid role selected.', 'danger')
             return render_template('auth/register.html')
 
-        if not email or not password or not phone:
+        # 2. Required fields presence check
+        if not email_raw or not password or not phone_raw:
             flash('Please fill in all mandatory fields.', 'warning')
             return render_template('auth/register.html')
 
-        if len(password) < 6:
-            flash('Password must be at least 6 characters long.', 'warning')
+        # 3. Email validation via email-validator
+        is_valid_email, email_err, norm_email = validate_email_address(email_raw)
+        if not is_valid_email:
+            flash(email_err, 'danger')
+            return render_template('auth/register.html')
+
+        # 4. Indian phone number validation
+        is_valid_phone, phone_err, norm_phone = validate_indian_phone(phone_raw)
+        if not is_valid_phone:
+            flash(phone_err, 'danger')
+            return render_template('auth/register.html')
+
+        # 5. Password complexity validation (minimum 8 characters, at least 1 letter and 1 digit)
+        is_valid_pass, pass_err = validate_password(password)
+        if not is_valid_pass:
+            flash(pass_err, 'warning')
             return render_template('auth/register.html')
 
         if password != confirm_password:
             flash('Passwords do not match.', 'danger')
             return render_template('auth/register.html')
 
-        existing_user = User.query.filter_by(email=email).first()
+        existing_user = User.query.filter_by(email=norm_email).first()
         if existing_user:
             flash('An account with this email already exists. Please log in.', 'info')
             return redirect(url_for('auth.login'))
 
-        # Create user
-        new_user = User(email=email, role=role)
+        # Create user with secure password hash
+        new_user = User(email=norm_email, role=role)
         new_user.set_password(password)
         db.session.add(new_user)
-        db.session.flush()  # get user.id
+        db.session.flush()  # obtain new_user.id
 
         if role == 'student':
             full_name = request.form.get('full_name', '').strip()
@@ -104,7 +132,7 @@ def register():
             student = StudentProfile(
                 user_id=new_user.id,
                 full_name=full_name,
-                phone=phone,
+                phone=norm_phone,
                 college_name=college_name,
                 degree=degree
             )
@@ -122,7 +150,7 @@ def register():
         elif role == 'company':
             company_name = request.form.get('company_name', '').strip()
             website = request.form.get('website', '').strip()
-            official_email = request.form.get('official_email', email).strip().lower()
+            official_email_raw = request.form.get('official_email', norm_email).strip()
             gst_no = request.form.get('registration_gst_number', '').strip()
             contact_person = request.form.get('contact_person_name', '').strip()
 
@@ -131,13 +159,29 @@ def register():
                 db.session.rollback()
                 return render_template('auth/register.html')
 
+            # Validate official company email
+            is_valid_off_email, off_err, norm_off_email = validate_email_address(official_email_raw)
+            if not is_valid_off_email:
+                flash(f"Invalid official company email: {off_err}", 'danger')
+                db.session.rollback()
+                return render_template('auth/register.html')
+
+            # Validate Indian GSTIN if provided
+            norm_gst = None
+            if gst_no:
+                is_valid_gst, gst_err, norm_gst = validate_gstin(gst_no)
+                if not is_valid_gst:
+                    flash(gst_err, 'danger')
+                    db.session.rollback()
+                    return render_template('auth/register.html')
+
             company = Company(
                 user_id=new_user.id,
                 company_name=company_name,
-                phone=phone,
-                official_email=official_email,
+                phone=norm_phone,
+                official_email=norm_off_email,
                 website=website,
-                registration_gst_number=gst_no,
+                registration_gst_number=norm_gst,
                 contact_person_name=contact_person,
                 verification_status='pending'
             )
@@ -159,7 +203,7 @@ def register():
     return render_template('auth/register.html')
 
 
-@auth_bp.route('/logout')
+@auth_bp.route('/logout', methods=['POST'])
 @login_required
 def logout():
     logout_user()

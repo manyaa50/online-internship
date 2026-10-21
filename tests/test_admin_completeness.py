@@ -46,6 +46,7 @@ def app():
     class TestConfig(Config):
         TESTING = True
         WTF_CSRF_ENABLED = False
+        RATELIMIT_ENABLED = False
         SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
         SECRET_KEY = 'test-secret-key-admin-group3'
         SERVER_NAME = 'localhost'
@@ -198,7 +199,7 @@ def test_appeal_authorization_requires_admin(app, client):
     assert resp_json.status_code == 403
 
     # 3. Company user rejected
-    client.get('/auth/logout')
+    client.post('/auth/logout')
     login(client, 'company@smartintern.org')
     resp = client.post(f'/admin/appeals/{intern_id}/approve', follow_redirects=True)
     assert resp.status_code == 200
@@ -535,20 +536,20 @@ def test_direct_url_protection_detail_returns_404_for_ineligible_postings(app, c
     login(client, 'student@smartintern.org')
     assert client.get(f'/internships/{pend_id}').status_code == 404
     assert client.get(f'/internships/{flag_id}').status_code == 404
-    client.get('/auth/logout')
+    client.post('/auth/logout')
 
     # 3. Unrelated company gets 404
     login(client, 'other2@smartintern.org')
     assert client.get(f'/internships/{pend_id}').status_code == 404
     assert client.get(f'/internships/{flag_id}').status_code == 404
-    client.get('/auth/logout')
+    client.post('/auth/logout')
 
     # 4. Owning company CAN view their own ineligible posting
     login(client, 'company@smartintern.org')
     resp_owner = client.get(f'/internships/{pend_id}')
     assert resp_owner.status_code == 200
     assert b"Private Pending Post" in resp_owner.data
-    client.get('/auth/logout')
+    client.post('/auth/logout')
 
     # 5. Admin CAN view any ineligible posting
     login(client, 'admin@smartintern.org')
@@ -596,7 +597,7 @@ def test_system_info_requires_admin(app, client):
 
     resp_json = client.get('/admin/system-info', headers={'Accept': 'application/json'})
     assert resp_json.status_code == 403
-    client.get('/auth/logout')
+    client.post('/auth/logout')
 
     # Company -> redirected with access denied
     login(client, 'company@smartintern.org')
@@ -692,7 +693,7 @@ def test_automatic_flagging_threshold_at_three_reports(app, client):
         assert len(threshold_notifs) == 0
 
     # 2. Student 2 files open report -> count 2, remains active
-    client.get('/auth/logout')
+    client.post('/auth/logout')
     login(client, 's2@test.org')
     client.post('/reports/submit', data={
         'internship_id': intern_id,
@@ -710,7 +711,7 @@ def test_automatic_flagging_threshold_at_three_reports(app, client):
         assert len(threshold_notifs) == 0
 
     # 3. Student 3 files open report -> count 3, transitions to 'flagged' and notifies admin!
-    client.get('/auth/logout')
+    client.post('/auth/logout')
     login(client, 's3@test.org')
     client.post('/reports/submit', data={
         'internship_id': intern_id,

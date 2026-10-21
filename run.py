@@ -15,6 +15,7 @@ if __name__ == '__main__':
             print("[INFO] Ensure your MySQL server (XAMPP / WAMP) is running on port 3306,")
             print("   or set DATABASE_URL environment variable.")
 
+    debug_mode = os.getenv('FLASK_DEBUG', 'false').lower() in ('true', '1', 'yes')
     port = int(os.environ.get('PORT', 5000))
-    print(f"[*] Starting Smart Internship System at http://127.0.0.1:{port}")
-    app.run(host='127.0.0.1', port=port, debug=True)
+    print(f"[*] Starting Smart Internship System at http://127.0.0.1:{port} (debug={debug_mode})")
+    app.run(host='127.0.0.1', port=port, debug=debug_mode)

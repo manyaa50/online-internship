@@ -43,6 +43,7 @@ def app():
     class TestConfig(Config):
         TESTING = True
         WTF_CSRF_ENABLED = False          # disable CSRF for most tests
+        RATELIMIT_ENABLED = False
         SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
         SECRET_KEY = 'test-secret-key-not-for-prod'
         SERVER_NAME = 'localhost'
@@ -158,7 +159,7 @@ def _login(client, email, password):
                        follow_redirects=True)
 
 def _logout(client):
-    client.get('/auth/logout', follow_redirects=True)
+    client.post('/auth/logout', follow_redirects=True)
 
 def _get_intern_id(app):
     with app.app_context():

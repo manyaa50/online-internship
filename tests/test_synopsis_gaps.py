@@ -82,6 +82,7 @@ def synopsis_app(tmp_path_factory):
     class TestSynopsisConfig(Config):
         TESTING = True
         WTF_CSRF_ENABLED = False
+        RATELIMIT_ENABLED = False
         SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
         SECRET_KEY = 'test-synopsis-key'
         SERVER_NAME = 'localhost'
@@ -539,7 +540,7 @@ def test_company_document_upload_and_private_storage(synopsis_app, client):
     static_resp = client.get(f'/static/uploads/company_docs/{doc_filename}')
     assert static_resp.status_code == 404
 
-    client.get('/auth/logout')
+    client.post('/auth/logout')
 
 
 def test_document_access_control(synopsis_app, client):
@@ -563,20 +564,20 @@ def test_document_access_control(synopsis_app, client):
     resp = client.get(f'/admin/verifications/document/{comp1_id}')
     # Should be redirected or denied access
     assert resp.status_code in (302, 403)
-    client.get('/auth/logout')
+    client.post('/auth/logout')
 
     # 3. Company 2 attempting to view Company 1's document
     client.post('/auth/login', data={'email': 'company2_g4@example.com', 'password': 'CompPass2!'})
     resp = client.get(f'/admin/verifications/document/{comp1_id}')
     assert resp.status_code in (302, 403)
-    client.get('/auth/logout')
+    client.post('/auth/logout')
 
     # 4. Admin successfully downloads Company 1's document
     client.post('/auth/login', data={'email': 'admin_g4@example.com', 'password': 'AdminPass1!'})
     admin_resp = client.get(f'/admin/verifications/document/{comp1_id}')
     assert admin_resp.status_code == 200
     assert admin_resp.data == pdf_bytes
-    client.get('/auth/logout')
+    client.post('/auth/logout')
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -608,7 +609,7 @@ def test_medium_risk_warning_rendered_on_detail_page(synopsis_app, client):
     assert 'I have read the safety warning' not in html_low
     assert 'acknowledge_safety_warning' not in html_low
 
-    client.get('/auth/logout')
+    client.post('/auth/logout')
 
 
 def test_medium_risk_application_server_enforcement(synopsis_app, client):
@@ -683,7 +684,7 @@ def test_medium_risk_application_server_enforcement(synopsis_app, client):
         low_app = Application.query.filter_by(internship_id=low_id).first()
         assert low_app is not None
 
-    client.get('/auth/logout')
+    client.post('/auth/logout')
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

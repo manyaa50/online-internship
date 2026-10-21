@@ -61,6 +61,7 @@ def private_resume_app(tmp_path_factory):
     class TestPrivateConfig(Config):
         TESTING = True
         WTF_CSRF_ENABLED = False
+        RATELIMIT_ENABLED = False
         SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
         SECRET_KEY = 'test-private-key'
         SERVER_NAME = 'localhost'
@@ -284,7 +285,7 @@ def test_unauthenticated_cannot_download_resume(client, private_resume_app):
         resume = Resume.query.first()
         res_id = resume.id
 
-    client.get('/auth/logout')
+    client.post('/auth/logout')
     response = client.get(f'/student/resume/download/{res_id}')
     assert response.status_code == 302
     assert '/auth/login' in response.headers.get('Location', '')

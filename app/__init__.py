@@ -2,16 +2,38 @@ import os
 from flask import Flask, render_template
 from flask_login import LoginManager, current_user
 from flask_wtf.csrf import CSRFProtect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 from app.config import Config
 from app.models import db, User, Internship, InternshipCategory, ScamReport, Company
 
 login_manager = LoginManager()
 csrf = CSRFProtect()
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=[],
+    storage_uri=os.getenv('RATELIMIT_STORAGE_URI', 'memory://')
+)
 
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    # Startup validation: SECRET_KEY is mandatory in non-debug mode
+    secret_key = app.config.get('SECRET_KEY')
+    is_debug = app.config.get('DEBUG', False)
+    is_testing = app.config.get('TESTING', False)
+
+    if not secret_key:
+        if not is_debug and not is_testing:
+            raise RuntimeError(
+                "SECRET_KEY is missing in non-debug mode. Please set SECRET_KEY in your environment or .env file."
+            )
+        elif is_debug:
+            # Fallback for local development when FLASK_DEBUG is enabled
+            app.config['SECRET_KEY'] = 'dev-insecure-secret-key-local-only'
 
     # Ensure upload directories exist safely
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -21,6 +43,7 @@ def create_app(config_class=Config):
     # Initialize extensions
     db.init_app(app)
     csrf.init_app(app)
+    limiter.init_app(app)
 
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
@@ -130,9 +153,14 @@ def create_app(config_class=Config):
         return render_template('base.html', error_code=413, error_title="File Too Large",
                                error_msg="The uploaded file exceeds the allowed file size limit (8 MB). Please choose a smaller document."), 413
 
+    @app.errorhandler(429)
+    def ratelimit_handler(e):
+        return render_template('base.html', error_code=429, error_title="Too Many Requests",
+                               error_msg="Too many requests. Please wait a moment and try again."), 429
+
     @app.errorhandler(500)
     def internal_error(e):
         return render_template('base.html', error_code=500, error_title="Server Error",
-                               error_msg="An unexpected error occurred. Our engineers have been alerted."), 500
+                               error_msg="An unexpected error occurred on the server. Please try again later or contact support."), 500
 
     return app

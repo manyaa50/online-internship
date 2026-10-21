@@ -5,7 +5,7 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from app.models import db, StudentProfile, Resume, Application, Internship, Notification, Company
 from app.decorators import role_required
-from app.utils import validate_resume_upload
+from app.utils import validate_resume_upload, validate_indian_phone
 
 student_bp = Blueprint('student', __name__)
 
@@ -84,16 +84,42 @@ def profile():
             flash('Full Name and Phone Number are required.', 'danger')
             return redirect(url_for('student.profile'))
 
+        is_valid_phone, phone_err, norm_phone = validate_indian_phone(phone)
+        if not is_valid_phone:
+            flash(phone_err, 'danger')
+            return redirect(url_for('student.profile'))
+
+        # Safely parse numeric fields without HTTP 500 crashes
+        parsed_grad_year = None
+        if graduation_year and str(graduation_year).strip():
+            try:
+                parsed_grad_year = int(str(graduation_year).strip())
+            except (ValueError, TypeError):
+                flash('Graduation year must be a valid integer.', 'danger')
+                return redirect(url_for('student.profile'))
+
+        parsed_cgpa = None
+        if cgpa and str(cgpa).strip():
+            try:
+                cgpa_val = float(str(cgpa).strip())
+                if cgpa_val < 0 or cgpa_val > 10:
+                    flash('CGPA must be between 0 and 10.', 'danger')
+                    return redirect(url_for('student.profile'))
+                parsed_cgpa = cgpa_val
+            except (ValueError, TypeError):
+                flash('CGPA must be a valid decimal number.', 'danger')
+                return redirect(url_for('student.profile'))
+
         if not student:
             student = StudentProfile(user_id=current_user.id)
             db.session.add(student)
 
         student.full_name = full_name
-        student.phone = phone
+        student.phone = norm_phone
         student.college_name = college_name
         student.degree = degree
-        student.graduation_year = int(graduation_year) if graduation_year else None
-        student.cgpa = float(cgpa) if cgpa else None
+        student.graduation_year = parsed_grad_year
+        student.cgpa = parsed_cgpa
         student.skills = skills
         student.bio = bio
         student.linkedin_url = linkedin_url

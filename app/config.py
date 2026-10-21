@@ -8,7 +8,11 @@ load_dotenv(BASE_DIR / '.env')
 
 class Config:
     """Base Configuration Class for Smart Internship System"""
-    SECRET_KEY = os.getenv('SECRET_KEY', 'smart-internship-scam-prevention-secret-key-2026-bca')
+    FLASK_DEBUG = os.getenv('FLASK_DEBUG', 'false').lower() in ('true', '1', 'yes')
+    DEBUG = FLASK_DEBUG
+
+    # SECRET_KEY has no hardcoded fallback; must be provided in environment or .env
+    SECRET_KEY = os.getenv('SECRET_KEY')
     
     # Database Configuration (XAMPP / WAMP MySQL default: root user, no password, localhost:3306)
     # Can also fallback to sqlite:///smart_internship.db if MySQL server is not active
@@ -45,3 +49,8 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     PER_PAGE = 8  # Pagination items count
+
+    # Rate Limiting configuration
+    RATELIMIT_ENABLED = os.getenv('RATELIMIT_ENABLED', 'true').lower() in ('true', '1', 'yes')
+    RATELIMIT_STORAGE_URI = os.getenv('RATELIMIT_STORAGE_URI', 'memory://')
+    RATELIMIT_STRATEGY = 'fixed-window'
