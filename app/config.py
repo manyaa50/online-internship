@@ -54,3 +54,8 @@ class Config:
     RATELIMIT_ENABLED = os.getenv('RATELIMIT_ENABLED', 'true').lower() in ('true', '1', 'yes')
     RATELIMIT_STORAGE_URI = os.getenv('RATELIMIT_STORAGE_URI', 'memory://')
     RATELIMIT_STRATEGY = 'fixed-window'
+
+    # Portal Support & Company Contact Details (Configurable via environment)
+    COMPANY_CONTACT_EMAIL = os.getenv('COMPANY_CONTACT_EMAIL', 'contact@smartintern-placeholder.example.com')
+    COMPANY_CONTACT_PHONE = os.getenv('COMPANY_CONTACT_PHONE', '+91 (000) 000-0000 / +91 98765-00000')
+    COMPANY_CONTACT_ADDRESS = os.getenv('COMPANY_CONTACT_ADDRESS', 'Plot No. 000, Innovation Tech Park, 4th Floor, Suite 404, Outer Ring Road, Bengaluru, Karnataka 560103, India')

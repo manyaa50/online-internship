@@ -88,6 +88,14 @@ def create_app(config_class=Config):
     app.register_blueprint(internships_bp, url_prefix='/internships')
     app.register_blueprint(reports_bp, url_prefix='/reports')
 
+    @app.context_processor
+    def inject_contact_settings():
+        return {
+            'company_contact_email': app.config.get('COMPANY_CONTACT_EMAIL', 'contact@smartintern-placeholder.example.com'),
+            'company_contact_phone': app.config.get('COMPANY_CONTACT_PHONE', '+91 (000) 000-0000 / +91 98765-00000'),
+            'company_contact_address': app.config.get('COMPANY_CONTACT_ADDRESS', 'Plot No. 000, Innovation Tech Park, 4th Floor, Suite 404, Outer Ring Road, Bengaluru, Karnataka 560103, India')
+        }
+
     # Home Route
     @app.route('/')
     def index():

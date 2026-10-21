@@ -40,7 +40,7 @@
                         <div class="text-md-end flex-shrink-0">
                             {% if internship.scam_check.risk_level == 'Low' %}
                                 <span class="badge badge-risk-low fs-6 px-3 py-2">
-                                    <i class="bi bi-shield-check me-1"></i>Safe ({{ internship.scam_check.risk_score }}/100)
+                                    <i class="bi bi-shield-check me-1"></i>Low Risk ({{ internship.scam_check.risk_score }}/100)
                                 </span>
                             {% elif internship.scam_check.risk_level == 'Medium' %}
                                 <span class="badge badge-risk-medium fs-6 px-3 py-2">
@@ -142,8 +142,8 @@
                             <i class="bi bi-shield-check"></i>
                         </div>
                         <div>
-                            <h5 class="fw-bold text-success mb-0">Verified Low-Risk Opportunity</h5>
-                            <small class="text-muted">Passed all automated heuristic scans and pattern checks.</small>
+                            <h5 class="fw-bold text-success mb-0">Low Heuristic Risk Score ({{ internship.scam_check.risk_score }}/100)</h5>
+                            <small class="text-muted">No high-risk scam heuristics triggered. Note: A low-risk score is an automated indicator based on pattern checks; it is not proof of authenticity or a guarantee of safety.</small>
                         </div>
                     {% endif %}
                 </div>
@@ -152,6 +152,14 @@
                 <p class="small text-muted mb-3">
                     {{ internship.scam_check.summary_notes if internship.scam_check else 'No heuristic evaluation recorded.' }}
                 </p>
+
+                <!-- Mandatory Transparency Disclaimer -->
+                <div class="alert alert-light border small text-secondary py-2 px-3 mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-info-circle text-primary fs-5 flex-shrink-0"></i>
+                    <div>
+                        <strong>Safety Notice:</strong> {{ internship.scam_check.disclaimer if (internship.scam_check and internship.scam_check.disclaimer) else 'Automated rule-based risk assessment. This result is not proof of fraud or legitimacy. Students should exercise standard due diligence.' }}
+                    </div>
+                </div>
 
                 <!-- Triggered Rules List (if any) -->
                 {% if triggered_rules %}

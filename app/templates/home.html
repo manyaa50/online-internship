@@ -10,10 +10,10 @@
             <i class="bi bi-shield-lock-fill me-1 text-info"></i> Automated Real-Time Scam Prevention Engine
         </span>
         <h1 class="display-5 fw-bold mb-3">
-            Find Authentic Internships.<br>Automated Scam Prevention.
+            Discover Internship Opportunities.<br>Automated Scam Prevention.
         </h1>
         <p class="hero-lead mb-4">
-            The verified internship platform built with heuristic scam detection algorithms to screen out fraudulent postings, upfront fee demands, and fake recruiter profiles before they reach you.
+            An internship management portal equipped with heuristic scam detection algorithms to assist students in evaluating posting risk levels and avoiding fraudulent recruiters.
         </p>
 
         <!-- Search Bar -->
@@ -185,7 +185,7 @@
     </div>
 </section>
 
-<!-- Featured Safe Internships -->
+<!-- Featured Opportunities -->
 <section class="py-5">
     <div class="container">
         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-end gap-2 mb-4">
@@ -193,7 +193,7 @@
                 <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill fw-semibold mb-2">
                     <i class="bi bi-check2-circle me-1"></i> Screened Opportunities
                 </span>
-                <h2 class="fw-bold mb-0">Featured Safe Internships</h2>
+                <h2 class="fw-bold mb-0">Featured Opportunities</h2>
             </div>
             <a href="{{ url_for('internships.list_internships') }}" class="btn btn-outline-primary btn-sm fw-semibold align-self-start align-self-sm-auto">
                 View All Postings <i class="bi bi-arrow-right ms-1"></i>
@@ -211,12 +211,12 @@
                             </span>
                             {% if item.scam_check %}
                                 {% if item.scam_check.risk_level == 'Low' %}
-                                    <span class="badge badge-risk-low" title="Passed All Heuristic Security Screening">
-                                        <i class="bi bi-shield-check me-1"></i>Safe ({{ item.scam_check.risk_score }}/100)
+                                    <span class="badge badge-risk-low" title="Low Heuristic Risk Score">
+                                        <i class="bi bi-shield-check me-1"></i>Low Risk ({{ item.scam_check.risk_score }}/100)
                                     </span>
                                 {% elif item.scam_check.risk_level == 'Medium' %}
                                     <span class="badge badge-risk-medium" title="Advisory Warning">
-                                        <i class="bi bi-exclamation-triangle me-1"></i>Caution ({{ item.scam_check.risk_score }}/100)
+                                        <i class="bi bi-exclamation-triangle me-1"></i>Medium Risk ({{ item.scam_check.risk_score }}/100)
                                     </span>
                                 {% endif %}
                             {% endif %}
@@ -349,7 +349,7 @@
                     </div>
                     <h5 class="fw-bold mb-2">Company Email</h5>
                     <p class="text-muted small mb-2">For inquiries, support, and company onboarding:</p>
-                    <p class="fw-semibold text-primary mb-0 small">[Placeholder Email: contact@smartintern-placeholder.example.com]</p>
+                    <p class="fw-semibold text-primary mb-0 small">[Placeholder Email: {{ company_contact_email }}]</p>
                 </div>
             </div>
 
@@ -361,7 +361,7 @@
                     </div>
                     <h5 class="fw-bold mb-2">Company Phone</h5>
                     <p class="text-muted small mb-2">Helpline available Mon - Fri (9 AM - 6 PM IST):</p>
-                    <p class="fw-semibold text-success mb-0 small">[Placeholder Phone: +91 (000) 000-0000 / +91 98765-00000]</p>
+                    <p class="fw-semibold text-success mb-0 small">[Placeholder Phone: {{ company_contact_phone }}]</p>
                 </div>
             </div>
 
@@ -373,7 +373,7 @@
                     </div>
                     <h5 class="fw-bold mb-2">Company Postal Address</h5>
                     <p class="text-muted small mb-2">Office headquarters & postal correspondence:</p>
-                    <p class="fw-semibold text-dark small mb-0">[Placeholder Postal Address: Plot No. 000, Innovation Tech Park, 4th Floor, Suite 404, Outer Ring Road, Bengaluru, Karnataka 560103, India]</p>
+                    <p class="fw-semibold text-dark small mb-0">[Placeholder Postal Address: {{ company_contact_address }}]</p>
                 </div>
             </div>
         </div>

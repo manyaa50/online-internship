@@ -229,17 +229,20 @@ Open your browser and navigate to: **`http://127.0.0.1:5000`**
 
 ---
 
-## Default Test Accounts & Seed Credentials
+## Development Test Accounts & Seed Credentials
 
-| Role | Email Address | Password | Profile Name |
+> [!IMPORTANT]
+> **Local Testing & Demonstration Only:** The accounts below are created strictly for local academic demonstration, viva evaluation, and automated test execution. All public-facing login autofill buttons, shortcuts, and bypass mechanisms have been eliminated. In accordance with data integrity principles, `seed.py` creates these initial fixtures without exposing plaintext passwords in server logs.
+
+| Role | Email Address | Development Password | Profile / Purpose |
 |:---|:---|:---|:---|
-| **System Administrator** | `admin@smartintern.com` | `Admin@12345` | Dr. Rajesh V. Sharma |
-| **Student** | `student@smartintern.com` | `Student@12345` | Aarav Sharma (BCA 3rd Year) |
-| **Verified Company 1** | `hr@technovaglobal.com` | `Company@12345` | TechNova Global Solutions |
-| **Verified Company 2** | `talent@cloudscalesystems.com` | `Company@12345` | CloudScale Systems |
-| **Suspicious Company** | `fastjobscorp@gmail.com` | `Scam@12345` | Apex Career Ventures (Pending) |
+| **System Administrator** | `admin@smartintern.com` | `Admin@12345` | System telemetry, verification audit, scam review |
+| **Student** | `student@smartintern.com` | `Student@12345` | Application pipeline, resume submission, scam reports |
+| **Verified Employer 1** | `hr@technovaglobal.com` | `Company@12345` | Approved company with active legitimate postings |
+| **Verified Employer 2** | `talent@cloudscalesystems.com` | `Company@12345` | Approved company with DevOps/Cloud postings |
+| **Suspicious Employer** | `fastjobscorp@gmail.com` | `Scam@12345` | Unverified company fixture for testing scam heuristics |
 
-*(These accounts are seeded automatically via `python seed.py` for local evaluation and testing.)*
+*(Note: These development fixtures are populated via idempotent `python seed.py`.)*
 
 ---
 

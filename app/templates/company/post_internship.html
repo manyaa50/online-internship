@@ -296,7 +296,7 @@
                     <h5 class="fw-bold mb-0">Scam Prevention Engine</h5>
                 </div>
                 <p class="small text-muted mb-3">
-                    Every posting is automatically evaluated by our heuristic safety scanner. Follow these rules to get a green safety badge:
+                    Every posting is automatically evaluated by our heuristic safety scanner. Follow these rules to keep the posting risk score low:
                 </p>
                 <div class="d-flex flex-column gap-2 small">
                     <div class="d-flex gap-2">
@@ -325,7 +325,7 @@
             <!-- Current scam score (edit mode only) -->
             {% if is_edit and internship.scam_check %}
                 <div class="card p-3 border-0 shadow-sm scam-alert-card {{ internship.scam_check.risk_level.lower() }} mb-3">
-                    <h6 class="fw-bold mb-2">Current Safety Score</h6>
+                    <h6 class="fw-bold mb-2">Current Heuristic Risk Score</h6>
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="fw-bold fs-5">{{ internship.scam_check.risk_score }}/100</span>
                         <span class="badge {% if internship.scam_check.risk_level == 'Low' %}badge-risk-low{% elif internship.scam_check.risk_level == 'Medium' %}badge-risk-medium{% else %}badge-risk-high{% endif %}">

@@ -174,9 +174,9 @@
                             </div>
                             {% if item.scam_check %}
                                 {% if item.scam_check.risk_level == 'Low' %}
-                                    <span class="badge badge-risk-low"><i class="bi bi-shield-check me-1"></i>Safe</span>
+                                    <span class="badge badge-risk-low"><i class="bi bi-shield-check me-1"></i>Low Risk</span>
                                 {% elif item.scam_check.risk_level == 'Medium' %}
-                                    <span class="badge badge-risk-medium"><i class="bi bi-exclamation-triangle me-1"></i>Caution</span>
+                                    <span class="badge badge-risk-medium"><i class="bi bi-exclamation-triangle me-1"></i>Medium Risk</span>
                                 {% endif %}
                             {% endif %}
                         </div>
