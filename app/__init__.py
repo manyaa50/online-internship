@@ -74,15 +74,31 @@ def create_app(config_class=Config):
         scam_prevented_count = 0
         categories = []
         try:
-            # Only display active low/medium risk postings on public home
+            # Only display active postings from approved companies with active accounts on public home
             featured_internships = (
                 Internship.query
-                .filter(Internship.status == 'active')
+                .join(Company, Internship.company_id == Company.id)
+                .join(User, Company.user_id == User.id)
+                .filter(
+                    Internship.status == 'active',
+                    Company.verification_status == 'approved',
+                    User.is_active == True
+                )
                 .order_by(Internship.created_at.desc())
                 .limit(6)
                 .all()
             )
-            total_postings = Internship.query.count()
+            total_postings = (
+                Internship.query
+                .join(Company, Internship.company_id == Company.id)
+                .join(User, Company.user_id == User.id)
+                .filter(
+                    Internship.status == 'active',
+                    Company.verification_status == 'approved',
+                    User.is_active == True
+                )
+                .count()
+            )
             total_companies = Company.query.filter_by(verification_status='approved').count()
             scam_prevented_count = Internship.query.filter(Internship.status.in_(['flagged', 'rejected'])).count()
             categories = InternshipCategory.query.all()

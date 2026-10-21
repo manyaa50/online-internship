@@ -1,10 +1,10 @@
 import os
 import uuid
 from datetime import datetime, date
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, abort
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
-from app.models import db, Internship, InternshipCategory, Application, Resume, Company, Notification, ScamCheck
+from app.models import db, Internship, InternshipCategory, Application, Resume, Company, Notification, ScamCheck, User
 from app.decorators import role_required
 from app.utils import validate_resume_upload
 
@@ -21,12 +21,21 @@ def list_internships():
     stipend_type = request.args.get('stipend_type', '').strip()
     min_stipend = request.args.get('min_stipend', type=float)
 
-    # Base query: only active listings
-    query = Internship.query.filter(Internship.status == 'active')
+    # Base query: only active listings from approved companies with active user accounts
+    query = (
+        Internship.query
+        .join(Company, Internship.company_id == Company.id)
+        .join(User, Company.user_id == User.id)
+        .filter(
+            Internship.status == 'active',
+            Company.verification_status == 'approved',
+            User.is_active == True
+        )
+    )
 
     if keyword:
         search_filter = f"%{keyword}%"
-        query = query.join(Company).filter(
+        query = query.filter(
             (Internship.title.ilike(search_filter)) |
             (Internship.description.ilike(search_filter)) |
             (Internship.skills_required.ilike(search_filter)) |
@@ -72,14 +81,29 @@ def list_internships():
 @internships_bp.route('/<int:internship_id>')
 def detail(internship_id):
     internship = Internship.query.get_or_404(internship_id)
+    company = internship.company
+    company_user = company.user if company else None
 
-    # If internship is flagged or closed, only company owner or admin can view
-    if internship.status != 'active':
-        is_owner = (current_user.is_authenticated and current_user.is_company and internship.company_id == current_user.company_profile.id)
-        is_admin = (current_user.is_authenticated and current_user.is_admin)
-        if not (is_owner or is_admin):
-            flash('This internship listing is currently unavailable or under administrative review.', 'warning')
-            return redirect(url_for('internships.list_internships'))
+    # Check ownership or admin status
+    is_owner = (
+        current_user.is_authenticated
+        and current_user.is_company
+        and current_user.company_profile is not None
+        and internship.company_id == current_user.company_profile.id
+    )
+    is_admin = current_user.is_authenticated and current_user.is_admin
+
+    is_publicly_eligible = (
+        internship.status == 'active'
+        and company is not None
+        and company.verification_status == 'approved'
+        and company_user is not None
+        and company_user.is_active is True
+    )
+
+    # Refuse access and avoid leaking private details if not eligible
+    if not is_publicly_eligible and not (is_owner or is_admin):
+        abort(404)
 
     existing_application = None
     student_resumes = []
@@ -113,6 +137,20 @@ def detail(internship_id):
 @role_required('student')
 def apply(internship_id):
     internship = Internship.query.get_or_404(internship_id)
+    company = internship.company
+    company_user = company.user if company else None
+
+    # Refuse access if posting or company is not publicly eligible
+    is_publicly_eligible = (
+        internship.status == 'active'
+        and company is not None
+        and company.verification_status == 'approved'
+        and company_user is not None
+        and company_user.is_active is True
+    )
+    if not is_publicly_eligible:
+        abort(404)
+
     student = current_user.student_profile
 
     if not student:

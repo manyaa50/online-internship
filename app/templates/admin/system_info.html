@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}System Information & Telemetry - SmartIntern Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 pb-2 border-bottom">
+        <div>
+            <h3 class="fw-bold mb-1 text-dark">
+                <i class="bi bi-info-circle-fill text-primary me-2"></i>System Information & Telemetry
+            </h3>
+            <p class="text-muted small mb-0">Overview of platform entities, safety risk classification, and audit log</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-speedometer2 me-1"></i>Admin Hub
+            </a>
+            <a href="{{ url_for('admin.system_info') }}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-arrow-clockwise me-1"></i>Refresh Telemetry
+            </a>
+        </div>
+    </div>
+
+    <!-- Error Banner (if any database error occurred) -->
+    {% if error_message %}
+        <div class="alert alert-danger d-flex align-items-center mb-4 shadow-sm" role="alert">
+            <i class="bi bi-exclamation-octagon-fill fs-4 me-2"></i>
+            <div>
+                <strong>Database Error:</strong> {{ error_message }}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Architecture Limitation Note -->
+    <div class="alert alert-info bg-info-subtle border-info-subtle d-flex align-items-start gap-2 mb-4 shadow-sm small">
+        <i class="bi bi-info-circle-fill text-info mt-1"></i>
+        <div>
+            <strong>Architecture Notice:</strong> Administrative action records are synthesized from existing transactional verification logs (<code>CompanyVerification</code>), resolved reports (<code>ScamReport</code>), and safety reviews (<code>ScamCheck</code>). A standalone generic audit trail table is not stored by design.
+        </div>
+    </div>
+
+    <!-- Primary Entity Metric Cards -->
+    <h5 class="fw-bold mb-3 text-secondary">
+        <i class="bi bi-database me-2"></i>Core Platform Metrics
+    </h5>
+    <div class="row g-3 mb-4">
+        <!-- Total Users -->
+        <div class="col-sm-6 col-lg-2">
+            <div class="card border-0 shadow-sm p-3 text-center h-100 bg-white">
+                <div class="text-primary mb-1"><i class="bi bi-people-fill fs-3"></i></div>
+                <div class="fs-4 fw-bold text-dark">{{ counts.total_users }}</div>
+                <div class="text-muted small text-uppercase fw-semibold">Total Users</div>
+            </div>
+        </div>
+        <!-- Total Students -->
+        <div class="col-sm-6 col-lg-2">
+            <div class="card border-0 shadow-sm p-3 text-center h-100 bg-white">
+                <div class="text-success mb-1"><i class="bi bi-mortarboard-fill fs-3"></i></div>
+                <div class="fs-4 fw-bold text-dark">{{ counts.total_students }}</div>
+                <div class="text-muted small text-uppercase fw-semibold">Students</div>
+            </div>
+        </div>
+        <!-- Total Companies -->
+        <div class="col-sm-6 col-lg-2">
+            <div class="card border-0 shadow-sm p-3 text-center h-100 bg-white">
+                <div class="text-warning mb-1"><i class="bi bi-building fs-3"></i></div>
+                <div class="fs-4 fw-bold text-dark">{{ counts.total_companies }}</div>
+                <div class="text-muted small text-uppercase fw-semibold">Companies</div>
+            </div>
+        </div>
+        <!-- Total Internships -->
+        <div class="col-sm-6 col-lg-2">
+            <div class="card border-0 shadow-sm p-3 text-center h-100 bg-white">
+                <div class="text-info mb-1"><i class="bi bi-briefcase-fill fs-3"></i></div>
+                <div class="fs-4 fw-bold text-dark">{{ counts.total_internships }}</div>
+                <div class="text-muted small text-uppercase fw-semibold">Postings</div>
+            </div>
+        </div>
+        <!-- Total Applications -->
+        <div class="col-sm-6 col-lg-2">
+            <div class="card border-0 shadow-sm p-3 text-center h-100 bg-white">
+                <div class="text-secondary mb-1"><i class="bi bi-file-earmark-text-fill fs-3"></i></div>
+                <div class="fs-4 fw-bold text-dark">{{ counts.total_applications }}</div>
+                <div class="text-muted small text-uppercase fw-semibold">Applications</div>
+            </div>
+        </div>
+        <!-- Total Reports -->
+        <div class="col-sm-6 col-lg-2">
+            <div class="card border-0 shadow-sm p-3 text-center h-100 bg-white">
+                <div class="text-danger mb-1"><i class="bi bi-flag-fill fs-3"></i></div>
+                <div class="fs-4 fw-bold text-dark">{{ counts.total_reports }}</div>
+                <div class="text-muted small text-uppercase fw-semibold">Scam Reports</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breakdown Grids: Risk Levels and Report Statuses -->
+    <div class="row g-4 mb-4">
+        <!-- Postings Risk Breakdown -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm p-4 h-100">
+                <h5 class="fw-bold mb-3 text-dark">
+                    <i class="bi bi-shield-shaded text-danger me-2"></i>Internship Postings by Risk Level
+                </h5>
+                <div class="d-flex flex-column gap-3">
+                    <div class="p-3 rounded bg-success-subtle border border-success-subtle d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-success me-2">Low Risk</span>
+                            <span class="small text-muted">Safe for public display (&le; 30 pts)</span>
+                        </div>
+                        <span class="fs-5 fw-bold text-success">{{ risk_counts.Low }}</span>
+                    </div>
+
+                    <div class="p-3 rounded bg-warning-subtle border border-warning-subtle d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-warning text-dark me-2">Medium Risk</span>
+                            <span class="small text-muted">Mild heuristic alerts (31 - 60 pts)</span>
+                        </div>
+                        <span class="fs-5 fw-bold text-warning-emphasis">{{ risk_counts.Medium }}</span>
+                    </div>
+
+                    <div class="p-3 rounded bg-danger-subtle border border-danger-subtle d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-danger me-2">High Risk</span>
+                            <span class="small text-muted">Quarantined from public (&ge; 61 pts)</span>
+                        </div>
+                        <span class="fs-5 fw-bold text-danger">{{ risk_counts.High }}</span>
+                    </div>
+
+                    {% if risk_counts.Unassessed > 0 %}
+                        <div class="p-3 rounded bg-light border d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-secondary me-2">Unassessed</span>
+                                <span class="small text-muted">Awaiting safety engine evaluation</span>
+                            </div>
+                            <span class="fs-5 fw-bold text-secondary">{{ risk_counts.Unassessed }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Scam Reports Status Breakdown -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm p-4 h-100">
+                <h5 class="fw-bold mb-3 text-dark">
+                    <i class="bi bi-flag-fill text-warning me-2"></i>Scam Reports by Status
+                </h5>
+                <div class="d-flex flex-column gap-3">
+                    <div class="p-3 rounded bg-danger-subtle border border-danger-subtle d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-danger me-2">Open</span>
+                            <span class="small text-muted">Newly submitted; awaiting triage</span>
+                        </div>
+                        <span class="fs-5 fw-bold text-danger">{{ report_status_counts.open }}</span>
+                    </div>
+
+                    <div class="p-3 rounded bg-warning-subtle border border-warning-subtle d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-warning text-dark me-2">Investigating</span>
+                            <span class="small text-muted">Currently undergoing admin inquiry</span>
+                        </div>
+                        <span class="fs-5 fw-bold text-warning-emphasis">{{ report_status_counts.investigating }}</span>
+                    </div>
+
+                    <div class="p-3 rounded bg-success-subtle border border-success-subtle d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-success me-2">Resolved</span>
+                            <span class="small text-muted">Investigation closed with decision</span>
+                        </div>
+                        <span class="fs-5 fw-bold text-success">{{ report_status_counts.resolved }}</span>
+                    </div>
+
+                    <div class="p-3 rounded bg-secondary-subtle border border-secondary-subtle d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-secondary me-2">Dismissed</span>
+                            <span class="small text-muted">Determined to be invalid or duplicate</span>
+                        </div>
+                        <span class="fs-5 fw-bold text-secondary">{{ report_status_counts.dismissed }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Admin Actions Audit Table -->
+    <div class="card border-0 shadow-sm p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="bi bi-clock-history text-primary me-2"></i>Recent Administrative Actions (Latest 10)
+            </h5>
+            <span class="badge bg-light text-muted border">System Telemetry Log</span>
+        </div>
+
+        {% if recent_admin_actions %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-uppercase">
+                        <tr>
+                            <th scope="col">Action Type</th>
+                            <th scope="col">Subject / Target</th>
+                            <th scope="col">Verdict / Status</th>
+                            <th scope="col">Notes / Details</th>
+                            <th scope="col" class="text-end">Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        {% for action in recent_admin_actions %}
+                            <tr>
+                                <td>
+                                    <span class="fw-semibold text-dark">{{ action.action_type }}</span>
+                                </td>
+                                <td>{{ action.target }}</td>
+                                <td>
+                                    <span class="badge bg-{{ action.badge_class }}">{{ action.outcome }}</span>
+                                </td>
+                                <td class="text-muted" style="max-width: 320px;">
+                                    <div class="text-truncate" title="{{ action.details }}">{{ action.details }}</div>
+                                </td>
+                                <td class="text-end text-muted">
+                                    {% if action.timestamp %}
+                                        {{ action.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                                    {% else %}
+                                        &mdash;
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-journal-x fs-1 text-secondary d-block mb-2"></i>
+                <p class="mb-0 fw-semibold">No recent administrative actions recorded.</p>
+                <small>Action records will appear here as companies are verified, reports are resolved, and listings are reviewed.</small>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
