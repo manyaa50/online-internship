@@ -13,7 +13,7 @@ def check_and_auto_flag_internship(internship_id):
     If so, transitions its status to 'flagged' and notifies admins once.
     Returns True if transitioned to 'flagged', False otherwise.
     """
-    internship = Internship.query.get(internship_id)
+    internship = db.session.get(Internship, internship_id)
     if not internship or internship.status == 'flagged':
         return False
 
@@ -45,8 +45,8 @@ def submit_report():
     internship_id = request.args.get('internship_id', type=int)
     company_id = request.args.get('company_id', type=int)
 
-    internship = Internship.query.get(internship_id) if internship_id else None
-    company = Company.query.get(company_id) if company_id else (internship.company if internship else None)
+    internship = db.session.get(Internship, internship_id) if internship_id else None
+    company = db.session.get(Company, company_id) if company_id else (internship.company if internship else None)
 
     if request.method == 'POST':
         reason = request.form.get('reason', '').strip()

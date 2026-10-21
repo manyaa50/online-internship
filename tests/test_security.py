@@ -244,7 +244,7 @@ def test_06_student_cannot_delete_internship(client, app):
     resp = client.post(f'/company/internships/delete/{intern_id}', follow_redirects=False)
     assert resp.status_code in (301, 302)
     with app.app_context():
-        still_exists = Internship.query.get(intern_id)
+        still_exists = _db.session.get(Internship, intern_id)
     assert still_exists is not None, "Student must not be able to delete an internship!"
     _logout(client)
 
@@ -254,7 +254,7 @@ def test_07_student_cannot_toggle_status(client, app):
     resp = client.post(f'/company/internships/status/{intern_id}/closed', follow_redirects=False)
     assert resp.status_code in (301, 302)
     with app.app_context():
-        intern = Internship.query.get(intern_id)
+        intern = _db.session.get(Internship, intern_id)
     assert intern.status == 'active', "Student must not be able to change internship status!"
     _logout(client)
 
@@ -320,7 +320,7 @@ def test_12_company_b_cannot_edit_company_a_internship(client, app):
     # Must get 404 (ownership not found) or redirect away
     assert resp.status_code in (301, 302, 404)
     with app.app_context():
-        intern = Internship.query.get(intern_id)
+        intern = _db.session.get(Internship, intern_id)
     assert intern.title == 'Company A Internship', "Cross-company edit must be blocked!"
     _logout(client)
 
@@ -331,7 +331,7 @@ def test_13_company_b_cannot_delete_company_a_internship(client, app):
     resp = client.post(f'/company/internships/delete/{intern_id}', follow_redirects=False)
     assert resp.status_code in (301, 302, 404)
     with app.app_context():
-        still_exists = Internship.query.get(intern_id)
+        still_exists = _db.session.get(Internship, intern_id)
     assert still_exists is not None, "Cross-company delete must be blocked!"
     _logout(client)
 
@@ -343,7 +343,7 @@ def test_14_company_b_cannot_toggle_company_a_status(client, app):
                        follow_redirects=False)
     assert resp.status_code in (301, 302, 404)
     with app.app_context():
-        intern = Internship.query.get(intern_id)
+        intern = _db.session.get(Internship, intern_id)
     assert intern.status == 'active', "Cross-company status change must be blocked!"
     _logout(client)
 
@@ -361,7 +361,7 @@ def test_15_company_cannot_set_flagged_status(client, app):
     assert resp.status_code == 403, \
         f"Expected 403 for admin-only status 'flagged', got {resp.status_code}"
     with app.app_context():
-        intern = Internship.query.get(intern_id)
+        intern = _db.session.get(Internship, intern_id)
     assert intern.status == 'active', "Internship status must remain active!"
     _logout(client)
 
@@ -373,7 +373,7 @@ def test_16_company_cannot_set_rejected_status(client, app):
                        follow_redirects=False)
     assert resp.status_code == 403
     with app.app_context():
-        intern = Internship.query.get(intern_id)
+        intern = _db.session.get(Internship, intern_id)
     assert intern.status == 'active'
     _logout(client)
 
@@ -425,7 +425,7 @@ def test_20_verified_company_can_toggle_own_internship(client, app):
                        follow_redirects=True)
     assert resp.status_code == 200
     with app.app_context():
-        intern = Internship.query.get(intern_id)
+        intern = _db.session.get(Internship, intern_id)
     assert intern.status == 'closed', "Verified company must be able to close own listing!"
     # Restore to active
     client.post(f'/company/internships/status/{intern_id}/active')

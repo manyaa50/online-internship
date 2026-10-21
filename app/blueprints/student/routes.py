@@ -142,6 +142,10 @@ def profile():
 @role_required('student')
 def upload_resume():
     student = current_user.student_profile
+    if not student:
+        flash('Please complete your profile before uploading a resume.', 'warning')
+        return redirect(url_for('student.profile'))
+
     if 'resume_file' not in request.files:
         flash('No file selected.', 'warning')
         return redirect(url_for('student.profile'))
@@ -183,11 +187,15 @@ def download_resume(resume_id):
     resume = Resume.query.get_or_404(resume_id)
 
     # Permission check: student owner, applied company, or admin
-    is_owner = (current_user.is_student and resume.student_id == current_user.student_profile.id)
+    is_owner = (
+        current_user.is_student
+        and current_user.student_profile is not None
+        and resume.student_id == current_user.student_profile.id
+    )
     is_admin = current_user.is_admin
     is_authorized_company = False
 
-    if current_user.is_company:
+    if current_user.is_company and current_user.company_profile is not None:
         # Check if the student applied to any internship belonging to this company
         company = current_user.company_profile
         has_app = Application.query.join(Internship).filter(
@@ -219,6 +227,10 @@ def download_resume(resume_id):
 @role_required('student')
 def delete_resume(resume_id):
     student = current_user.student_profile
+    if not student:
+        flash('Student profile not found.', 'danger')
+        return redirect(url_for('student.profile'))
+
     resume = Resume.query.filter_by(id=resume_id, student_id=student.id).first_or_404()
 
     # If linked to applications, we keep the file or block deletion

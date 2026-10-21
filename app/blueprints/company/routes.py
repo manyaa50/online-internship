@@ -319,6 +319,7 @@ def manage_internships():
 @company_bp.route('/internships/edit/<int:internship_id>', methods=['GET', 'POST'])
 @login_required
 @role_required('company')
+@company_verified_required
 def edit_internship(internship_id):
     company = current_user.company_profile
     internship = Internship.query.filter_by(id=internship_id, company_id=company.id).first_or_404()

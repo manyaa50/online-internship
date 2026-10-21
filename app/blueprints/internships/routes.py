@@ -271,7 +271,11 @@ def apply(internship_id):
         db.session.flush()
 
     elif resume_id:
-        selected_resume = Resume.query.filter_by(id=int(resume_id), student_id=student.id).first()
+        try:
+            r_id = int(str(resume_id).strip())
+            selected_resume = Resume.query.filter_by(id=r_id, student_id=student.id).first()
+        except (ValueError, TypeError):
+            selected_resume = None
 
     if not selected_resume:
         selected_resume = student.primary_resume()

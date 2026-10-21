@@ -134,6 +134,7 @@ online-internship/
 ├── tests/
 │   ├── test_admin_completeness.py
 │   ├── test_data_integrity_and_demo_readiness.py
+│   ├── test_final_regression.py
 │   ├── test_private_resumes.py
 │   ├── test_scam_detector.py
 │   ├── test_schema_sync.py
@@ -254,13 +255,14 @@ Open your browser and navigate to: **`http://127.0.0.1:5000`**
 
 ## Testing & Evaluation
 
-### Run Test Suites (161 Automated Tests across 8 Test Suites)
+### Run Test Suites (175 Automated Tests across 9 Test Suites)
 ```powershell
 pytest
 ```
 Covers:
 - `test_admin_completeness.py`: Moderation cascades, appeal workflows, report thresholds.
 - `test_data_integrity_and_demo_readiness.py`: Dynamic dashboard calculations, test fixture separation, absence of demo shortcuts.
+- `test_final_regression.py`: End-to-end regression workflows, role gating, input hardening, and notification delivery.
 - `test_private_resumes.py`: Resume storage isolation, authorized serving, migration safety.
 - `test_scam_detector.py`: Heuristics, weights, negation handling, leetspeak normalization.
 - `test_schema_sync.py`: Table columns, nullability, seed compatibility.
