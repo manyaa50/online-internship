@@ -2,7 +2,7 @@ import os
 import uuid
 import json
 from datetime import datetime
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, current_app
 from flask_login import login_required, current_user
 from app.models import db, Company, Internship, InternshipCategory, Application, ScamCheck, Notification, User, CompanyVerification
 from app.decorators import role_required, company_verified_required
@@ -227,14 +227,31 @@ def create_internship():
                                    form_data=form_data, is_edit=False)
 
         # ── Scam Detection ─────────────────────────────────────────────
+        # Gather existing company descriptions to detect near-duplicate submissions
+        existing_descriptions = [
+            i.description for i in
+            Internship.query.filter(
+                Internship.company_id != company.id,
+                Internship.status == 'active'
+            ).with_entities(Internship.description).limit(200).all()
+        ]
+
         posting_data = {
-            'title': title, 'description': description,
-            'responsibilities': responsibilities, 'eligibility': eligibility,
-            'skills_required': skills, 'stipend_type': stipend_type,
-            'stipend_amount': stipend_amt, 'contact_email': contact_email,
-            'contact_phone': contact_phone
+            'title': title,
+            'description': description,
+            'responsibilities': responsibilities,
+            'eligibility': eligibility,
+            'skills_required': skills,
+            'stipend_type': stipend_type,
+            'stipend_amount': stipend_amt,
+            'contact_email': contact_email,
+            'contact_phone': contact_phone,
+            'application_instructions': application_instructions,
         }
-        scan_result = ScamDetector.evaluate_posting(posting_data, company=company)
+        scan_result = ScamDetector.evaluate_posting(
+            posting_data, company=company,
+            existing_descriptions=existing_descriptions
+        )
         risk_score  = scan_result['risk_score']
         risk_level  = scan_result['risk_level']
         posting_status = 'flagged' if risk_level == 'High' else 'active'
@@ -272,8 +289,10 @@ def create_internship():
                 risk_level=risk_level,
                 triggered_rules=json.dumps(scan_result['triggered_rules']),
                 summary_notes=scan_result['summary_notes'],
+                disclaimer=scan_result.get('disclaimer', 'AI risk assessment only. This result is not proof of fraud or legitimacy.'),
                 is_reviewed_by_admin=(risk_level == 'Low'),
-                admin_verdict='approved' if risk_level == 'Low' else 'pending'
+                admin_verdict='approved' if risk_level == 'Low' else 'pending',
+                appeal_status='none'
             )
             db.session.add(scam_check)
 
@@ -371,7 +390,15 @@ def edit_internship(internship_id):
         internship.contact_email = request.form.get('contact_email', company.official_email).strip()
         internship.contact_phone = request.form.get('contact_phone', company.phone).strip()
 
-        # Re-screen with ScamDetector
+        # Re-screen with ScamDetector (full data including instructions)
+        existing_descriptions = [
+            i.description for i in
+            Internship.query.filter(
+                Internship.company_id != company.id,
+                Internship.id != internship.id,
+                Internship.status == 'active'
+            ).with_entities(Internship.description).limit(200).all()
+        ]
         posting_data = {
             'title': internship.title,
             'description': internship.description,
@@ -381,10 +408,14 @@ def edit_internship(internship_id):
             'stipend_type': internship.stipend_type,
             'stipend_amount': float(internship.stipend_amount),
             'contact_email': internship.contact_email,
-            'contact_phone': internship.contact_phone
+            'contact_phone': internship.contact_phone,
+            'application_instructions': internship.application_instructions or '',
         }
 
-        scan = ScamDetector.evaluate_posting(posting_data, company=company)
+        scan = ScamDetector.evaluate_posting(
+            posting_data, company=company,
+            existing_descriptions=existing_descriptions
+        )
         
         if not internship.scam_check:
             internship.scam_check = ScamCheck(internship_id=internship.id)
@@ -393,6 +424,11 @@ def edit_internship(internship_id):
         internship.scam_check.risk_level = scan['risk_level']
         internship.scam_check.triggered_rules = json.dumps(scan['triggered_rules'])
         internship.scam_check.summary_notes = scan['summary_notes']
+        internship.scam_check.disclaimer = scan.get('disclaimer', 'AI risk assessment only. This result is not proof of fraud or legitimacy.')
+        # Reset appeal status when content changes — admin must re-review
+        if internship.scam_check.appeal_status == 'pending':
+            internship.scam_check.appeal_status = 'none'
+            internship.scam_check.appeal_note = None
 
         if scan['risk_level'] == 'High':
             internship.status = 'flagged'
@@ -411,26 +447,95 @@ def edit_internship(internship_id):
 @company_bp.route('/internships/status/<int:internship_id>/<string:new_status>', methods=['POST'])
 @login_required
 @role_required('company')
+@company_verified_required
 def toggle_status(internship_id, new_status):
     company = current_user.company_profile
-    internship = Internship.query.filter_by(id=internship_id, company_id=company.id).first_or_404()
+    # Ownership enforced: filter_by company_id derived from session, never from request
+    internship = Internship.query.filter_by(
+        id=internship_id, company_id=company.id
+    ).first_or_404()
 
-    if new_status in ['active', 'closed']:
-        internship.status = new_status
-        db.session.commit()
-        flash(f'Internship status changed to {new_status}.', 'success')
-    else:
-        flash('Invalid status action.', 'danger')
+    # Companies may only toggle between 'active' and 'closed'.
+    # 'flagged' and 'rejected' are admin-only statuses — never allow company to set them.
+    COMPANY_ALLOWED_STATUSES = {'active', 'closed'}
+    if new_status not in COMPANY_ALLOWED_STATUSES:
+        abort(403)   # Reject silently to prevent status enumeration
 
+    # Do not allow re-activating a flagged/rejected listing without admin review
+    if internship.status in ('flagged', 'rejected') and new_status == 'active':
+        flash('This listing is under administrator review and cannot be re-activated manually.', 'warning')
+        return redirect(url_for('company.manage_internships'))
+
+    internship.status = new_status
+    db.session.commit()
+    flash(f'Internship status changed to "{new_status}".', 'success')
+    return redirect(url_for('company.manage_internships'))
+
+
+@company_bp.route('/internships/appeal/<int:internship_id>', methods=['POST'])
+@login_required
+@role_required('company')
+def appeal_scam_flag(internship_id):
+    """
+    Allows a company to submit a written appeal for a flagged internship.
+    The company provides context; an admin must review and decide.
+    Companies cannot edit, clear, or override the risk score directly.
+    """
+    company = current_user.company_profile
+    internship = Internship.query.filter_by(
+        id=internship_id, company_id=company.id
+    ).first_or_404()
+
+    if internship.status not in ('flagged', 'rejected'):
+        flash('Only flagged or rejected listings may be appealed.', 'warning')
+        return redirect(url_for('company.manage_internships'))
+
+    if not internship.scam_check:
+        flash('No scam assessment found for this listing.', 'warning')
+        return redirect(url_for('company.manage_internships'))
+
+    if internship.scam_check.appeal_status == 'pending':
+        flash('Your appeal is already under review. Please wait for the admin decision.', 'info')
+        return redirect(url_for('company.manage_internships'))
+
+    appeal_text = request.form.get('appeal_note', '').strip()
+    if not appeal_text or len(appeal_text) < 30:
+        flash('Please provide a detailed appeal message (minimum 30 characters).', 'danger')
+        return redirect(url_for('company.manage_internships'))
+
+    # Cap appeal note length to prevent abuse
+    appeal_text = appeal_text[:2000]
+
+    internship.scam_check.appeal_note = appeal_text
+    internship.scam_check.appeal_submitted_at = datetime.utcnow()
+    internship.scam_check.appeal_status = 'pending'
+
+    # Notify admins
+    for admin_user in User.query.filter_by(role='admin').all():
+        db.session.add(Notification(
+            user_id=admin_user.id,
+            title=f'Appeal Submitted: {internship.title}',
+            message=(f'{company.company_name} submitted an appeal for the flagged internship '
+                     f'"{internship.title}". Please review.'),
+            category='scam_alert',
+            link_url=url_for('admin.flagged_internships')
+        ))
+
+    db.session.commit()
+    flash('Your appeal has been submitted. An administrator will review it and respond.', 'success')
     return redirect(url_for('company.manage_internships'))
 
 
 @company_bp.route('/internships/delete/<int:internship_id>', methods=['POST'])
 @login_required
 @role_required('company')
+@company_verified_required
 def delete_internship(internship_id):
     company = current_user.company_profile
-    internship = Internship.query.filter_by(id=internship_id, company_id=company.id).first_or_404()
+    # Ownership enforced server-side: company_id from session, never from request body
+    internship = Internship.query.filter_by(
+        id=internship_id, company_id=company.id
+    ).first_or_404()
 
     db.session.delete(internship)
     db.session.commit()

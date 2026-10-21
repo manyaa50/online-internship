@@ -245,11 +245,19 @@ class ScamCheck(db.Model):
     internship_id = db.Column(db.Integer, db.ForeignKey('internships.id', ondelete='CASCADE'), unique=True, nullable=False)
     risk_score = db.Column(db.Integer, nullable=False, default=0)
     risk_level = db.Column(db.Enum('Low', 'Medium', 'High', name='risk_levels'), nullable=False, default='Low')
-    triggered_rules = db.Column(db.Text, nullable=False, default='[]')  # JSON array
-    summary_notes = db.Column(db.Text, nullable=True)
+    triggered_rules = db.Column(db.Text, nullable=False, default='[]')  # JSON array — internal, not shown to company
+    summary_notes = db.Column(db.Text, nullable=True)                   # internal summary — admin-only
+    disclaimer = db.Column(db.Text, nullable=True)                      # always set: "AI risk assessment only..."
     is_reviewed_by_admin = db.Column(db.Boolean, default=False)
     admin_verdict = db.Column(db.Enum('pending', 'approved', 'rejected', name='admin_verdicts'), default='pending')
-    admin_notes = db.Column(db.Text, nullable=True)
+    admin_notes = db.Column(db.Text, nullable=True)                     # internal — not exposed to company
+    # Appeal fields — company may submit a written appeal; admin reviews it
+    appeal_note = db.Column(db.Text, nullable=True)                     # company's appeal message
+    appeal_submitted_at = db.Column(db.DateTime, nullable=True)
+    appeal_status = db.Column(
+        db.Enum('none', 'pending', 'reviewed', name='appeal_statuses'),
+        default='none', nullable=False
+    )
     created_at = db.Column(db.DateTime, default=utc_now)
     updated_at = db.Column(db.DateTime, default=utc_now, onupdate=utc_now)
 
