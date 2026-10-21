@@ -29,6 +29,7 @@ import json
 import pytest
 from datetime import date, timedelta
 from app import create_app
+from app.config import Config
 from app.models import db as _db, User, StudentProfile, Company, Internship, InternshipCategory
 
 
@@ -39,14 +40,14 @@ from app.models import db as _db, User, StudentProfile, Company, Internship, Int
 @pytest.fixture(scope='session')
 def app():
     """Create application with in-memory SQLite test database."""
-    application = create_app()
-    application.config.update({
-        'TESTING': True,
-        'WTF_CSRF_ENABLED': False,          # disable CSRF for most tests
-        'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:',
-        'SECRET_KEY': 'test-secret-key-not-for-prod',
-        'SERVER_NAME': 'localhost',
-    })
+    class TestConfig(Config):
+        TESTING = True
+        WTF_CSRF_ENABLED = False          # disable CSRF for most tests
+        SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+        SECRET_KEY = 'test-secret-key-not-for-prod'
+        SERVER_NAME = 'localhost'
+
+    application = create_app(TestConfig)
     with application.app_context():
         _db.create_all()
         _seed_test_data()

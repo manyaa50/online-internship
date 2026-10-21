@@ -4,7 +4,7 @@ from datetime import datetime, date, timedelta, timezone
 from app import create_app
 from app.models import (
     db, User, Admin, StudentProfile, Resume, Company, CompanyVerification,
-    InternshipCategory, Internship, ScamCheck, ScamReport, Notification
+    InternshipCategory, Internship, ScamCheck, ScamReport, Notification, Application
 )
 from app.scam_detector import ScamDetector
 
