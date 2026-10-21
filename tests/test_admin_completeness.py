@@ -154,7 +154,7 @@ def create_internship(company, category=None, title='Software Engineer Intern', 
         risk_score=risk_score,
         risk_level=risk_level,
         triggered_rules='[]',
-        disclaimer='AI risk assessment only.',
+        disclaimer='Automated rule-based risk assessment. This result is not proof of fraud or legitimacy.',
         admin_verdict='pending',
         appeal_status='none'
     )

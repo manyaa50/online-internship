@@ -272,7 +272,7 @@ def create_internship():
                 risk_level=risk_level,
                 triggered_rules=json.dumps(scan_result['triggered_rules']),
                 summary_notes=scan_result['summary_notes'],
-                disclaimer=scan_result.get('disclaimer', 'AI risk assessment only. This result is not proof of fraud or legitimacy.'),
+                disclaimer=scan_result.get('disclaimer', ScamDetector.DISCLAIMER_TEXT),
                 appeal_status='none'
             )
             db.session.add(scam_record)
@@ -399,7 +399,7 @@ def edit_internship(internship_id):
         internship.scam_check.risk_level = scan['risk_level']
         internship.scam_check.triggered_rules = json.dumps(scan['triggered_rules'])
         internship.scam_check.summary_notes = scan['summary_notes']
-        internship.scam_check.disclaimer = scan.get('disclaimer', 'AI risk assessment only. This result is not proof of fraud or legitimacy.')
+        internship.scam_check.disclaimer = scan.get('disclaimer', ScamDetector.DISCLAIMER_TEXT)
         
         if internship.scam_check.appeal_status == 'pending':
             internship.scam_check.appeal_status = 'none'

@@ -70,9 +70,15 @@ class ScamDetector:
         },
     }
 
+    DISCLAIMER_TEXT = "Automated rule-based risk assessment. This result is not proof of fraud or legitimacy."
+
     # ------------------------------------------------------------------
     # 1. Upfront Payment & Financial Demands  (Critical weight)
     # ------------------------------------------------------------------
+    PAYMENT_VERBS = r'(?:send|sending|sent|pay|paying|paid|transfer|transferring|transferred|deposit|depositing|deposited)'
+    CURRENCY_MARKERS = r'(?:(?:rs\.?|inr|₹|\$)\s*\d+|\d+\s*(?:rupees?|rs\.?|inr|₹|\$)|rupees?|rs\.?|inr|₹|\$)'
+    PAYMENT_APPS = r'(?:gpay|google\s*pay|phonepe|phone\s*pe|paytm|upi)'
+
     PAYMENT_PATTERNS = [
         r'\bregistration fee\b',
         r'\bsecurity deposit\b',
@@ -89,20 +95,29 @@ class ScamDetector:
         r'\bpay\s*(?:rs\.?|inr|₹|\$)\s*\d+',
         r'\binvestment required\b',
         r'\bpaid training mandatory\b',
+        # Payment paraphrases (send/pay/transfer/deposit within 5 words of currency/amount or payment apps)
+        rf'\b{PAYMENT_VERBS}(?:\s+(?!stipend\b|salary\b)\w+){{0,5}}\s+{CURRENCY_MARKERS}\b',
+        rf'\b{PAYMENT_VERBS}(?:\s+\w+){{0,5}}\s+{PAYMENT_APPS}\b',
+        # Common Hinglish payment demands
+        r'\b(?:paise|rupaye|fees?)\s+den[ae]\s+ho(?:ga|nge)\b',
     ]
 
     # ------------------------------------------------------------------
-    # 2. Credential / Sensitive-Data Requests  (Critical weight) — NEW
+    # 2. Credential / Sensitive-Data Requests  (Critical weight)
     # ------------------------------------------------------------------
+    ACTION_VERBS = (
+        r'(?:share|sharing|shared|send|sending|sent|provide|providing|'
+        r'provided|provides|enter|entering|entered|enters|submit|submitting|submitted|submits)'
+    )
+    CREDENTIAL_TARGETS = r'(?:(?:bank\s+)?account\s*number|upi\s*id|bank\s+account\s+details)'
+
     CREDENTIAL_PATTERNS = [
         r'\bshare your otp\b',
         r'\bsend otp\b',
         r'\byour aadhaar\b',
         r'\baadhaar number\b',
         r'\bpan card number\b',
-        r'\bbank account (?:number|details)\b',
         r'\bifsc code\b',
-        r'\baccount number\b',
         r'\bnetbanking (?:password|credentials)\b',
         r'\bcard number\b',
         r'\bcvv\b',
@@ -112,7 +127,9 @@ class ScamDetector:
         r'\blogin credentials\b',
         r'\bprovide your pin\b',
         r'\bwallet details\b',
-        r'\bupi id\b',
+        # UPI ID and account number paired with nearby action verbs (bidirectional)
+        rf'\b{ACTION_VERBS}(?:\s+\w+){{0,5}}\s+{CREDENTIAL_TARGETS}\b',
+        rf'\b{CREDENTIAL_TARGETS}(?:\s+\w+){{0,5}}\s+{ACTION_VERBS}\b',
     ]
 
     # ------------------------------------------------------------------
@@ -206,14 +223,78 @@ class ScamDetector:
         r'lnkd\.in\/[a-zA-Z0-9]+',
         r'mcaf\.ee\/[a-zA-Z0-9]+',
         r'soo\.gd\/[a-zA-Z0-9]+',
-        r'youtu\.be\/[a-zA-Z0-9_\-]+',
-        r'linktr\.ee\/[a-zA-Z0-9_\-]+',
     ]
 
     # ------------------------------------------------------------------
     # 9. Raw IP-address URLs
     # ------------------------------------------------------------------
     IP_URL_PATTERN = r'https?:\/\/(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?(?:\/\S*)?'
+
+    # ==================================================================
+    # Normalization & Negation Helpers
+    # ==================================================================
+
+    @classmethod
+    def normalize_text(cls, text):
+        """
+        Normalizes text before rule matching:
+          - Converts to lowercase
+          - Removes zero-width Unicode characters
+          - Collapses repeated dots or punctuation inside obfuscated words
+          - Normalizes common leetspeak mappings (1->i, 0->o, @->a, 3->e)
+            while preserving numeric amounts, currency contexts, and email domains
+          - Collapses repeated whitespace
+        """
+        if not text or not isinstance(text, str):
+            return ''
+
+        t = text.lower()
+        # Remove zero-width Unicode characters
+        t = re.sub(r'[\u200b-\u200f\ufeff\u00ad\u2060]', '', t)
+
+        # De-obfuscate repeated dots or punctuation inside words (e.g. p.a.y.m.e.n.t or f..e..e)
+        t = re.sub(r'\b([a-z0-9](?:[._\-*~^]{1,3}[a-z0-9])+)\b', lambda m: re.sub(r'[._\-*~^]', '', m.group(1)), t)
+        t = re.sub(r'(?<=[a-z])[._\-*~^]{2,}(?=[a-z])', '', t)
+
+        # De-obfuscate leetspeak tokens while preserving numbers, currency, and emails
+        def _de_leet(token):
+            if '@' in token and '.' in token and not token.startswith('@'):
+                return token
+            if re.match(r'^(?:rs|inr|₹|\$)?\d+(?:%|\b)?$', token):
+                return token
+            w = token.replace('@', 'a')
+            if re.search(r'[a-z]', w):
+                w = w.replace('1', 'i').replace('0', 'o').replace('3', 'e')
+            return w
+
+        tokens = t.split()
+        t = ' '.join(_de_leet(tok) for tok in tokens)
+        return re.sub(r'\s+', ' ', t).strip()
+
+    @classmethod
+    def _is_negated(cls, full_text, match_start):
+        """
+        Determines whether a matched pattern is negated within the preceding 4 words.
+        Negation lookback is bounded by sentence boundaries (.!?\n;) and checked against:
+        'no', 'not', 'zero', 'without', 'never', 'free of'.
+        """
+        prefix = full_text[:match_start]
+        boundary_pos = -1
+        for sep in ('.', '!', '?', '\n', ';'):
+            pos = prefix.rfind(sep)
+            if pos > boundary_pos:
+                boundary_pos = pos
+        if boundary_pos != -1:
+            prefix = prefix[boundary_pos + 1:]
+
+        words = re.findall(r"\b[a-z0-9']+\b", prefix.lower())
+        last_4_words = words[-4:] if len(words) >= 4 else words
+        phrase = ' '.join(last_4_words)
+
+        if 'free of' in phrase:
+            return True
+        negations = {'no', 'not', 'zero', 'without', 'never'}
+        return any(w in negations for w in last_4_words)
 
     # ==================================================================
     # Private helpers
@@ -357,23 +438,25 @@ class ScamDetector:
         stipend_amount           = float(internship_data.get('stipend_amount') or 0.0)
         stipend_type             = internship_data.get('stipend_type', 'paid') or 'paid'
 
-        # Primary text corpus (title + core fields) — lowercased
-        full_text = (
+        # Primary text corpus (title + core fields) — normalized
+        full_text = cls.normalize_text(
             f"{title} {description} {responsibilities} {eligibility} {skills}"
-        ).lower()
+        )
 
         # Instructions text is kept separately for the dedicated check but
         # also folded into full_text for PAYMENT / CREDENTIAL scanning.
-        instructions_text = application_instructions.lower()
-        full_text_with_instr = f"{full_text} {instructions_text}"
+        instructions_text = cls.normalize_text(application_instructions)
+        full_text_with_instr = f"{full_text} {instructions_text}".strip()
 
         # ------------------------------------------------------------------
         # CHECK 1 — Upfront Payment Demands  (weight: 35, Critical)
         # ------------------------------------------------------------------
         matched_payment = []
         for pattern in cls.PAYMENT_PATTERNS:
-            hits = re.findall(pattern, full_text_with_instr, flags=re.IGNORECASE)
-            matched_payment.extend(hits)
+            for m in re.finditer(pattern, full_text_with_instr, flags=re.IGNORECASE):
+                if cls._is_negated(full_text_with_instr, m.start()):
+                    continue
+                matched_payment.append(m.group())
 
         if matched_payment:
             weight = weights['payment_demand']
@@ -392,12 +475,14 @@ class ScamDetector:
             })
 
         # ------------------------------------------------------------------
-        # CHECK 2 — Credential / Sensitive-Data Requests  (weight: 35, Critical) — NEW
+        # CHECK 2 — Credential / Sensitive-Data Requests  (weight: 35, Critical)
         # ------------------------------------------------------------------
         matched_credentials = []
         for pattern in cls.CREDENTIAL_PATTERNS:
-            hits = re.findall(pattern, full_text_with_instr, flags=re.IGNORECASE)
-            matched_credentials.extend(hits)
+            for m in re.finditer(pattern, full_text_with_instr, flags=re.IGNORECASE):
+                if cls._is_negated(full_text_with_instr, m.start()):
+                    continue
+                matched_credentials.append(m.group())
 
         if matched_credentials:
             weight = weights['credential_request']
@@ -620,13 +705,17 @@ class ScamDetector:
         # ------------------------------------------------------------------
         if instructions_text:
             matched_instr = []
-            # Also re-scan instructions through PAYMENT and CREDENTIAL patterns
+            # Also re-scan instructions through PAYMENT and CREDENTIAL patterns with negation check
             for pattern in cls.PAYMENT_PATTERNS + cls.CREDENTIAL_PATTERNS:
-                hits = re.findall(pattern, instructions_text, flags=re.IGNORECASE)
-                matched_instr.extend(hits)
+                for m in re.finditer(pattern, instructions_text, flags=re.IGNORECASE):
+                    if cls._is_negated(instructions_text, m.start()):
+                        continue
+                    matched_instr.append(m.group())
             for pattern in cls.SUSPICIOUS_INSTRUCTIONS_PATTERNS:
-                hits = re.findall(pattern, instructions_text, flags=re.IGNORECASE)
-                matched_instr.extend(hits)
+                for m in re.finditer(pattern, instructions_text, flags=re.IGNORECASE):
+                    if cls._is_negated(instructions_text, m.start()):
+                        continue
+                    matched_instr.append(m.group())
 
             if matched_instr:
                 weight = weights['instructions_risk']
@@ -703,8 +792,6 @@ class ScamDetector:
             'triggered_rules':       triggered_rules,
             'summary_notes':         summary_notes,
             'recommendation':        recommendation,
-            'disclaimer':            (
-                "AI risk assessment only. This result is not proof of fraud or legitimacy."
-            ),
+            'disclaimer':            cls.DISCLAIMER_TEXT,
             'requires_human_review': risk_level == 'High',
         }

@@ -292,6 +292,7 @@ def seed_database():
                 risk_level=scan['risk_level'],
                 triggered_rules=json.dumps(scan['triggered_rules']),
                 summary_notes=scan['summary_notes'],
+                disclaimer=scan.get('disclaimer', ScamDetector.DISCLAIMER_TEXT),
                 is_reviewed_by_admin=True,
                 admin_verdict='approved'
             )
@@ -351,6 +352,7 @@ def seed_database():
             risk_level=scan1['risk_level'],
             triggered_rules=json.dumps(scan1['triggered_rules']),
             summary_notes=scan1['summary_notes'],
+            disclaimer=scan1.get('disclaimer', ScamDetector.DISCLAIMER_TEXT),
             is_reviewed_by_admin=False,
             admin_verdict='pending'
         ))
@@ -403,6 +405,7 @@ def seed_database():
             risk_level=scan2['risk_level'],
             triggered_rules=json.dumps(scan2['triggered_rules']),
             summary_notes=scan2['summary_notes'],
+            disclaimer=scan2.get('disclaimer', ScamDetector.DISCLAIMER_TEXT),
             is_reviewed_by_admin=False,
             admin_verdict='pending'
         ))
@@ -456,6 +459,7 @@ def seed_database():
             risk_level=scan_med['risk_level'],
             triggered_rules=json.dumps(scan_med['triggered_rules']),
             summary_notes=scan_med['summary_notes'],
+            disclaimer=scan_med.get('disclaimer', ScamDetector.DISCLAIMER_TEXT),
             is_reviewed_by_admin=False,
             admin_verdict='approved'
         ))
