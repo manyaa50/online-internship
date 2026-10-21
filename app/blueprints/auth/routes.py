@@ -3,7 +3,8 @@ from flask_login import login_user, logout_user, login_required, current_user
 
 from app import limiter
 from app.models import db, User, StudentProfile, Company, Notification
-from app.utils import (
+from app.services.notifications import notify
+from app.validators import (
     is_safe_redirect_url,
     validate_email_address,
     validate_indian_phone,
@@ -138,14 +139,13 @@ def register():
             )
             db.session.add(student)
 
-            welcome_notif = Notification(
+            notify(
                 user_id=new_user.id,
                 title="Welcome to SmartIntern!",
                 message="Your student account has been created. Complete your profile and upload your resume to start applying safely.",
                 category="general",
                 link_url=url_for('student.profile')
             )
-            db.session.add(welcome_notif)
 
         elif role == 'company':
             company_name = request.form.get('company_name', '').strip()
@@ -187,14 +187,13 @@ def register():
             )
             db.session.add(company)
 
-            welcome_notif = Notification(
+            notify(
                 user_id=new_user.id,
                 title="Company Account Registered",
                 message="Your company profile has been submitted for administrative verification. You can post internships once verified.",
                 category="verification",
                 link_url=url_for('company.profile')
             )
-            db.session.add(welcome_notif)
 
         db.session.commit()
         flash('Registration successful! You can now log in with your credentials.', 'success')

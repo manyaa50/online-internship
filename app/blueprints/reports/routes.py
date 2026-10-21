@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
-from app.models import db, ScamReport, Internship, Company, Notification, User
+from app.models import db, ScamReport, Internship, Company, User
 from app.decorators import role_required
+from app.services.notifications import notify
 
 reports_bp = Blueprint('reports', __name__)
 
@@ -25,14 +26,14 @@ def check_and_auto_flag_internship(internship_id):
         internship.status = 'flagged'
         admins = User.query.filter_by(role='admin').all()
         for admin_user in admins:
-            db.session.add(Notification(
+            notify(
                 user_id=admin_user.id,
                 title="⚠️ Internship Automatically Flagged (Report Threshold)",
                 message=(f"Internship '{internship.title}' has accumulated {open_reports_count} open "
                          f"scam reports and has been automatically quarantined for review."),
                 category="scam_alert",
                 link_url=url_for('admin.flagged_internships')
-            ))
+            )
         return True
     return False
 
@@ -78,14 +79,13 @@ def submit_report():
         admins = User.query.filter_by(role='admin').all()
         target_name = internship.title if internship else (company.company_name if company else 'Entity')
         for admin_user in admins:
-            notif = Notification(
+            notify(
                 user_id=admin_user.id,
                 title="🚨 New Scam Report Filed",
                 message=f"Student {student.full_name} reported '{target_name}' for '{reason}'.",
                 category="report",
                 link_url=url_for('admin.reports')
             )
-            db.session.add(notif)
 
         # Automatic flagging check when threshold of 3 open reports is reached
         if resolved_internship_id:

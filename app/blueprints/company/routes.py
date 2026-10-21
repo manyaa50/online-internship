@@ -4,10 +4,12 @@ import json
 from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, current_app, send_from_directory
 from flask_login import login_required, current_user
-from app.models import db, Company, Internship, InternshipCategory, Application, ScamCheck, Notification, User, CompanyVerification
+from app.models import db, Company, Internship, InternshipCategory, Application, ScamCheck, User, CompanyVerification
 from app.decorators import role_required, company_verified_required
 from app.scam_detector import ScamDetector
-from app.utils import (
+from app.services.notifications import notify
+from app.services.uploads import save_company_logo, save_verification_doc
+from app.validators import (
     validate_verification_document,
     validate_email_address,
     validate_indian_phone,
@@ -126,28 +128,19 @@ def profile():
         # Handle Logo upload
         logo_file = request.files.get('logo')
         if logo_file and logo_file.filename:
-            ext = logo_file.filename.rsplit('.', 1)[-1].lower()
-            if ext in current_app.config['ALLOWED_IMAGE_EXTENSIONS']:
-                logo_name = f"comp_{company.id}_{uuid.uuid4().hex[:8]}.{ext}"
-                logo_path = os.path.join(current_app.config['UPLOAD_FOLDER'], logo_name)
-                logo_file.save(logo_path)
+            logo_name = save_company_logo(logo_file, company.id)
+            if logo_name:
                 company.logo = logo_name
 
         # Handle Verification Document upload
         doc_file = request.files.get('verification_document')
         if doc_file and doc_file.filename:
-            is_valid, err_msg, meta = validate_verification_document(doc_file)
+            is_valid, err_msg, doc_info = save_verification_doc(doc_file, company.id)
             if not is_valid:
                 flash(err_msg, 'danger')
                 verifications = company.verifications.order_by(CompanyVerification.created_at.desc()).all() if company else []
                 return render_template('company/profile.html', company=company, verifications=verifications)
-
-            unique_doc_name = f"doc_{company.id}_{uuid.uuid4().hex[:8]}.{meta['ext']}"
-            docs_dir = current_app.config['DOCS_FOLDER']
-            os.makedirs(docs_dir, exist_ok=True)
-            doc_path = os.path.join(docs_dir, unique_doc_name)
-            doc_file.save(doc_path)
-            company.verification_document = unique_doc_name
+            company.verification_document = doc_info['filename']
 
         # If company was rejected and they updated their profile, reset status to pending for review
         if company.verification_status == 'rejected' and request.form.get('resubmit_verification'):
@@ -279,13 +272,13 @@ def create_internship():
 
             if risk_level == 'High':
                 for admin_user in User.query.filter_by(role='admin').all():
-                    db.session.add(Notification(
+                    notify(
                         user_id=admin_user.id,
                         title=f"High Risk Internship Posted: {internship.title}",
                         message=f"{company.company_name} posted an internship flagged as High Risk (Score: {risk_score}/100). Review required.",
                         category="scam_alert",
                         link_url=url_for('admin.flagged_internships')
-                    ))
+                    )
 
             db.session.commit()
 
@@ -476,14 +469,14 @@ def appeal_scam_flag(internship_id):
     internship.scam_check.appeal_status = 'pending'
 
     for admin_user in User.query.filter_by(role='admin').all():
-        db.session.add(Notification(
+        notify(
             user_id=admin_user.id,
             title=f'Appeal Submitted: {internship.title}',
             message=(f'{company.company_name} submitted an appeal for the flagged internship '
                      f'"{internship.title}". Please review.'),
             category='scam_alert',
             link_url=url_for('admin.flagged_internships')
-        ))
+        )
 
     db.session.commit()
     flash('Your appeal has been submitted. An administrator will review it and respond.', 'success')
@@ -571,14 +564,13 @@ def update_application_status(app_id):
         if feedback:
             application.company_feedback = feedback
 
-        notif = Notification(
+        notify(
             user_id=application.student.user_id,
             title=f"Application Update: {application.internship.title}",
             message=f"Your application status at {company.company_name} has been updated to '{new_status}'.",
             category="application",
             link_url=url_for('student.applications')
         )
-        db.session.add(notif)
         db.session.commit()
         flash(f'Application status updated to {new_status} and student notified.', 'success')
     else:

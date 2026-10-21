@@ -3,10 +3,11 @@ import uuid
 from datetime import datetime, date
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, abort
 from flask_login import login_required, current_user
-from werkzeug.utils import secure_filename
-from app.models import db, Internship, InternshipCategory, Application, Resume, Company, Notification, ScamCheck, User
+from app.models import db, Internship, InternshipCategory, Application, Resume, Company, ScamCheck, User
 from app.decorators import role_required
-from app.utils import validate_resume_upload
+from app.services.notifications import notify
+from app.services.uploads import save_resume
+from app.validators import validate_resume_upload
 
 internships_bp = Blueprint('internships', __name__)
 
@@ -256,23 +257,17 @@ def apply(internship_id):
     selected_resume = None
 
     if new_resume_file and new_resume_file.filename:
-        is_valid, err_msg, meta = validate_resume_upload(new_resume_file)
+        is_valid, err_msg, res_info = save_resume(new_resume_file, student.id)
         if not is_valid:
             flash(err_msg, 'danger')
             return redirect(url_for('internships.detail', internship_id=internship.id))
 
-        unique_name = f"resume_{student.id}_{uuid.uuid4().hex[:8]}.{meta['ext']}"
-        save_dir = current_app.config['RESUME_FOLDER']
-        os.makedirs(save_dir, exist_ok=True)
-        save_path = os.path.join(save_dir, unique_name)
-
-        new_resume_file.save(save_path)
         selected_resume = Resume(
             student_id=student.id,
-            filename=unique_name,
-            original_name=meta['original_name'],
-            file_path=f"instance/uploads/resumes/{unique_name}",
-            file_size=meta['file_size'],
+            filename=res_info['filename'],
+            original_name=res_info['original_name'],
+            file_path=res_info['file_path'],
+            file_size=res_info['file_size'],
             is_primary=False
         )
         db.session.add(selected_resume)
@@ -298,24 +293,22 @@ def apply(internship_id):
     db.session.add(application)
 
     # In-app notification for the company
-    notif = Notification(
+    notify(
         user_id=internship.company.user_id,
         title=f"New Candidate Applied: {internship.title}",
         message=f"{student.full_name} has submitted an application for '{internship.title}'.",
         category="application",
         link_url=url_for('company.applicants', internship_id=internship.id)
     )
-    db.session.add(notif)
 
     # Notification for student
-    student_notif = Notification(
+    notify(
         user_id=current_user.id,
         title="Application Submitted",
         message=f"You successfully applied for '{internship.title}' at {internship.company.company_name}.",
         category="application",
         link_url=url_for('student.applications')
     )
-    db.session.add(student_notif)
 
     db.session.commit()
     flash('Congratulations! Your application has been successfully submitted.', 'success')

@@ -1,6 +1,5 @@
 """
 Hardened security decorators for SmartInternshipSystem.
-Replaces app/decorators.py — all existing decorators preserved and strengthened.
 """
 from functools import wraps
 from flask import abort, flash, redirect, url_for, request, jsonify

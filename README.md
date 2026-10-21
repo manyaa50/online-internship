@@ -1,158 +1,81 @@
 # Smart Online Internship Management System with Scam Prevention
 
-A complete, production-ready web application built for a **BCA final-year project**. It features role-based access control for **Students**, **Companies**, and **Administrators**, and incorporates an automated **Scam Detection & Prevention Engine** (`scam_detector.py`) that screens every internship posting in real time using weighted heuristic analysis.
+An intelligent web application built for a **BCA final-year project**. It features role-based access control for **Students**, **Companies**, and **Administrators**, and incorporates a multi-layer automated **Scam Detection Engine** (`app/scam_detector.py`) that evaluates every internship posting in real time using weighted heuristic analysis and text normalization.
 
 ---
 
-## 🚀 Key Modules & System Highlights
+## 🚀 Key Modules & System Architecture
 
-1. **Role-Based Access Control (RBAC):**
-   - **Student:** Profile & resume management, search/filter opportunities, real-time safety audit badges, 1-click apply, application tracking, scam reporting.
-   - **Company:** Corporate registration, administrative verification, internship posting & lifecycle management, automated scam screening preview, candidate status pipeline & feedback.
-   - **Administrator:** Verification audit queue, quarantine of flagged scam listings, manual override or delisting, user account management (blocking fraudulent accounts), resolution of community scam reports.
-
-2. **Core Scam Detection Engine (`app/scam_detector.py`):**
-   - **Upfront Payment Heuristic (Weight: 35):** Flags registration fees, security deposits, training charges, laptop deposits, and payment demands.
-   - **Unrealistic Claims & Stipends (Weight: 25):** Flags guaranteed job promises, 100% placement claims, "no interview needed", and exorbitant stipends (> ₹60,000/mo).
-   - **Suspicious Contact Channels (Weight: 20):** Flags company postings using generic free emails (`@gmail.com`, `@yahoo.com`), and off-platform chat redirects (`Telegram`, `WhatsApp only`).
-   - **Link Verification (Weight: 20):** Detects URL shorteners (`bit.ly`, `tinyurl`, `t.me`), IP-based addresses, and domain mismatches.
-   - **Urgency & Panic Words (Weight: 15):** Flags "limited seats", "apply within 1 hour", and artificial scarcity pressure.
-   - **Vagueness Check (Weight: 15):** Flags listings under 30 words with no responsibilities or concrete skills.
-   - **Scoring & Actions:**
-     - **Low (0 - 30):** Safe & published directly with a verified green safety badge.
-     - **Medium (31 - 60):** Published with a cautionary advisory banner highlighting specific warning triggers.
-     - **High (61 - 100):** Auto-quarantined into the admin review queue. Hidden from student listings until admin approval.
-
-3. **In-App Notification Center:**
-   - Real-time notifications for company verification outcomes, application status updates, scam warnings, and report resolutions with unread count in navbar.
-
----
-
-## 🛠️ Tech Stack & Requirements
-
-- **Backend:** Python 3.10+ with Flask (Flask-Login, Flask-WTF, Flask-SQLAlchemy, PyMySQL, Werkzeug)
-- **Frontend:** HTML5, CSS3, JavaScript, Bootstrap 5.3, Bootstrap Icons
-- **Database:** MySQL 5.7+ / 8.0+ (runs on XAMPP, WAMP, or standalone MySQL)
+### 1. Role-Based Access Control (RBAC)
+- **Student:**
+  - Complete student profile with degree, college, location preferences, and contact details.
+  - Multi-resume management with private storage and primary resume selection.
+  - Browse and filter internships with pagination, duration range (weeks), domain categories, work mode, eligibility keywords, and skills.
+  - Safety audit cards showing risk level, transparent rule breakdown, and disclaimer.
+  - One-click application modal with optional immediate resume upload and cover letter.
+  - Real-time application lifecycle tracking (Applied, Under Review, Selected, Rejected, Completed).
+  - Scam reporting mechanism with reason categorization and evidence links.
+- **Company:**
+  - Company registration with official email and Indian GSTIN validation.
+  - Mandatory administrative verification workflow before posting internships.
+  - Secure verification document upload (PDF/PNG/JPG) with magic-byte validation.
+  - Internship lifecycle management (Draft, Active, Flagged, Closed, Rejected).
+  - Pre-publication scam detector screening with instant risk score feedback.
+  - Appeal submission for flagged internships with administrator resolution tracking.
+  - Candidate pipeline review, feedback notes, and status management.
+- **Administrator:**
+  - Executive dashboard with platform analytics, pending verifications, flagged postings, and open reports.
+  - Company verification review queue with authorized document preview, approval, and rejection reasons.
+  - Moderation cascades: revoking company verification or blocking employer accounts automatically sets active postings to `closed` and notifies affected student applicants.
+  - Flagged internships audit queue with side-by-side detector explanation, company appeal notes, and approve/reject actions.
+  - User moderation (activate/block students and employers).
+  - Scam report investigation center with option to quarantine/delist listings.
+  - Domain categories management and audit trails.
 
 ---
 
-## ⚙️ Setup Instructions for XAMPP / MySQL
+## 🛡️ Scam Detection Engine (`app/scam_detector.py`)
 
-### Step 1: Start MySQL in XAMPP
-1. Open the **XAMPP Control Panel**.
-2. Click **Start** next to the **MySQL** module (port `3306`).
-   *(Optional: Start Apache if you want to use phpMyAdmin at `http://localhost/phpmyadmin`)*.
+The automated safety engine scores internship postings against 10 weighted heuristic rules (0–100 risk score) with bounded contextual negation handling and leetspeak/obfuscation text normalization:
 
-### Step 2: Create the Database & Import Schema
-You can either import `schema.sql` via phpMyAdmin or via command prompt:
+| # | Rule Name | Weight | Triggers & Heuristics |
+|---|:---|:---:|:---|
+| 1 | **Upfront Payment Demands** | **35** | Registration fees, security deposits, training charges, laptop deposits, and payment demands via UPI, GPay, PhonePe, or Paytm. Excludes bounded negations (e.g., *"no registration fee"*, *"free of cost"*). |
+| 2 | **Credential / Sensitive-Data Requests** | **35** | Requests for bank account numbers, OTP, PIN, CVV, passwords, Aadhaar, PAN card, or UPI ID paired with action verbs (*"provide"*, *"submit"*, *"verify"*). Excludes contextual negations. |
+| 3 | **Unrealistic Offers & Excessive Stipend** | **25** | Unrealistic claims (*"guaranteed job"*, *"100% placement"*, *"earn per week"*, *"no interview needed"*), or monthly stipends exceeding ₹60,000 without commensurate requirements. |
+| 4 | **Suspicious Links & Shorteners** | **20** | Known URL shorteners (`bit.ly`, `tinyurl.com`, `t.me`), raw IP addresses, and suspicious off-platform redirect domains. |
+| 5 | **Contact Safety** | **20** | Free public email domains (`@gmail.com`, `@yahoo.com`) used by company postings, and off-platform chat redirects (*"WhatsApp only"*, *"Telegram only"*). |
+| 6 | **Urgency & Pressure Tactics** | **25** | Artificial scarcity pressure (*"limited seats"*, *"hurry"*, *"apply within 1 hour"*, *"offer expires today"*). |
+| 7 | **Vague Content** | **15** | Postings under 30 words with no defined responsibilities, concrete tasks, or technical skills. |
+| 8 | **Spam Repetition** | **20** | Excessive word repetition and spam keywords (*"earn money"*, *"work from home"*, repeated symbols). |
+| 9 | **Duplicate Listing Similarity** | **30** | Word-bigram Jaccard similarity across existing postings from the same employer to detect spam replication. |
+| 10 | **Suspicious Instructions** | **20** | Application instructions requesting off-platform payments, external WhatsApp/Telegram chat links, or sensitive data sharing. |
 
-#### Option A: Via phpMyAdmin:
-1. Open your browser and go to `http://localhost/phpmyadmin`.
-2. Click **New** on the left menu, enter database name: `smart_internship_db`, and click **Create**.
-3. Select `smart_internship_db`, click the **Import** tab at the top.
-4. Click **Choose File**, select `schema.sql` from this project folder, and click **Import**.
-
-#### Option B: Via Command Line / PowerShell (XAMPP default path):
-```powershell
-C:\xampp\mysql\bin\mysql.exe -u root -e "CREATE DATABASE IF NOT EXISTS smart_internship_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-C:\xampp\mysql\bin\mysql.exe -u root smart_internship_db < schema.sql
-```
-
-*(Note: If using WAMP or custom MySQL, adjust the credentials in `.env` if your root user has a password).*
-
----
-
-## 💻 Running the Application
-
-### Step 1: Create and Activate Virtual Environment
-Open a terminal in the project directory (`C:\Users\Admin\Desktop\SmartInternshipSystem`):
-
-```powershell
-# Create virtual environment
-python -m venv venv
-
-# Activate on Windows PowerShell
-.\venv\Scripts\Activate.ps1
-```
-
-### Step 2: Install Dependencies
-```powershell
-pip install -r requirements.txt
-```
-
-### Step 3: Populate Database with Seed Data
-Run the seeder script. This creates categories, the administrator account, sample verified companies, sample students, legitimate internships, and **2 deliberately flagged scam postings** to demo the detector:
-
-```powershell
-python seed.py
-```
-
-### Step 4: Launch the Server
-```powershell
-python run.py
-```
-Open your browser and navigate to:
-**`http://127.0.0.1:5000`**
+### Scoring & Risk Tiers
+- **Low Risk (0 – 30):** Passed automated screening. Published immediately with a green safety badge.
+- **Medium Risk (31 – 60):** Published with a cautionary advisory banner and standard disclaimer:
+  > *"Automated rule-based risk assessment. This result is not proof of fraud or legitimacy."*
+- **High Risk (61 – 100):** Auto-quarantined with status `flagged`. Hidden from student listings until reviewed and approved by an administrator.
 
 ---
 
-## 🔑 Default Credentials for Testing & Viva Demo
+## 🔒 Security Architecture
 
-| Role | Email Address | Password | Profile Name |
-| :--- | :--- | :--- | :--- |
-| **System Administrator** | `admin@smartintern.com` | `Admin@12345` | Dr. Rajesh V. Sharma |
-| **Student** | `student@smartintern.com` | `Student@12345` | Aarav Sharma (BCA 3rd Year) |
-| **Verified Company 1** | `hr@technovaglobal.com` | `Company@12345` | TechNova Global Solutions |
-| **Verified Company 2** | `talent@cloudscalesystems.com` | `Company@12345` | CloudScale Systems |
-| **Suspicious Company** | `fastjobscorp@gmail.com` | `Scam@12345` | Apex Career Ventures (Pending) |
-
-*(Note: On the login page, you can also simply click the **Quick Test Credentials** pills to autofill any account with a single click!)*
-
----
-
-## 🧪 Demo Walkthrough: Scam Detector in Action
-
-### 1. Observing Automated Flagging (Pre-seeded Scam Postings)
-1. Log in as **Administrator** (`admin@smartintern.com` / `Admin@12345`).
-2. Navigate to **Flagged Postings (Scams)** in the top menu or click the red badge on the dashboard.
-3. Observe **Listing 1: Online Data Entry & Form Filling**:
-   - **Risk Score:** `80/100` (High Risk).
-   - **Triggered Violations:** Upfront payment detected (`refundable amount registration fee`), Unrealistic earnings (`earn ₹30,000/week`, `no interview needed`), Generic email domain (`@gmail.com`), Off-platform redirect (`WhatsApp only`).
-   - Notice that because it scored &ge; 61, its status was set to **Quarantined (Flagged)** and it does not show up on the public students list.
-   - Click **Reject & Delist** or **Override & Approve** to observe administrative action.
-
-### 2. Live Employer Posting & Real-Time Screening
-1. Log in as verified company **TechNova Solutions** (`hr@technovaglobal.com` / `Company@12345`).
-2. Go to **Post New Internship**.
-3. Test creating a posting with suspicious text:
-   - Title: `Urgent Java Intern - Guaranteed Placement`
-   - Description: `Direct selection without interview. Selected candidates must pay registration fee of Rs 2000. Limited seats, apply within 1 hour! Contact only on whatsapp.`
-   - Stipend: `80000`
-4. Submit the posting.
-5. Notice the system immediately displays a warning message that the posting was flagged by the safety engine with a score of `90+/100` and quarantined for administrator review!
-
-### 3. Student Application & Warning View
-1. Log in as **Student** (`student@smartintern.com` / `Student@12345`).
-2. Click **Browse Internships**.
-3. Open `Junior Social Media & Content Marketing Intern`:
-   - Notice the **Caution Badge (Score: 35/100)**.
-   - Expand the security audit box to see why: Free Gmail address was used instead of an authentic company domain.
-4. Click **Apply for this Internship**:
-   - Choose the pre-loaded resume or upload a new one.
-   - Submit the application.
-5. Navigate to **My Applications** to verify status tracking.
-
-### 4. Reporting Fraud
-1. On any internship detail page, click **Report this Posting**.
-2. Select the violation category (e.g. *Demanded upfront payment*), provide notes, and submit.
-3. Switch to the **Administrator** account to see the report instantly queued in **Scam Reports** with options to investigate, notify the student, or delist the company.
+- **Private Resume Storage:** Resumes are stored outside the public document root in `instance/uploads/resumes/`. Access is strictly controlled via an authorized route (`/student/resume/download/<id>`) that enforces ownership and applicant permissions.
+- **Private Verification Documents:** Company compliance documents are stored in `instance/uploads/company_docs/` and accessible exclusively to administrators via `/admin/verifications/document/<company_id>`.
+- **Public Uploads:** Profile pictures and company logos are stored in `app/static/uploads/` with sanitized, random UUID filenames.
+- **CSRF Protection:** Flask-WTF protects all state-changing `POST` requests, including logouts and admin actions.
+- **Rate Limiting:** Flask-Limiter throttles login attempts to 5 attempts per minute per client IP (`RATELIMIT_ENABLED=True`).
+- **Open Redirect Prevention:** Safe relative URL validation strictly accepts paths starting with exactly one `/`, rejecting `//`, backslashes, control characters, schemes, and domain authorities.
+- **Strict Password Validation:** Minimum 8 characters with at least one letter and at least one digit.
+- **Format Validation:** Loose 15-character GSTIN validator and 10-digit Indian mobile phone number validator.
 
 ---
 
-## 📁 Project Structure
+## 📁 Repository Structure
 
 ```text
-SmartInternshipSystem/
+online-internship/
 ├── app/
 │   ├── blueprints/
 │   │   ├── admin/
@@ -173,58 +96,170 @@ SmartInternshipSystem/
 │   │   └── student/
 │   │       ├── __init__.py
 │   │       └── routes.py
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── notifications.py    # Shared in-app notification dispatcher
+│   │   └── uploads.py          # Consolidated upload handling (private vs public)
 │   ├── static/
 │   │   ├── css/
 │   │   │   └── style.css
 │   │   ├── js/
 │   │   │   └── main.js
-│   │   └── uploads/
-│   │       ├── company_docs/
-│   │       └── resumes/
+│   │   └── uploads/            # Public static uploads (avatars, logos)
 │   ├── templates/
-│   │   ├── admin/
-│   │   │   ├── categories.html
-│   │   │   ├── companies.html
-│   │   │   ├── dashboard.html
-│   │   │   ├── flagged_internships.html
-│   │   │   ├── reports.html
-│   │   │   ├── students.html
-│   │   │   └── verifications.html
-│   │   ├── auth/
-│   │   │   ├── login.html
-│   │   │   └── register.html
-│   │   ├── company/
-│   │   │   ├── applicants.html
-│   │   │   ├── dashboard.html
-│   │   │   ├── manage_internships.html
-│   │   │   ├── post_internship.html
-│   │   │   └── profile.html
-│   │   ├── internships/
-│   │   │   ├── detail.html
-│   │   │   └── list.html
-│   │   ├── notifications/
-│   │   │   └── list.html
-│   │   ├── reports/
-│   │   │   ├── my_reports.html
-│   │   │   └── submit.html
-│   │   ├── student/
-│   │   │   ├── applications.html
-│   │   │   ├── dashboard.html
-│   │   │   └── profile.html
+│   │   ├── admin/              # Dashboard, verifications, flagged, reports, categories
+│   │   ├── auth/               # Login, register, notifications
+│   │   ├── company/            # Dashboard, post/edit, applicants, profile
+│   │   ├── internships/        # Search/filter listing, detail view with safety card
+│   │   ├── reports/            # Student scam report submission & history
+│   │   ├── student/            # Dashboard, profile, applications
 │   │   ├── base.html
 │   │   └── home.html
-│   ├── __init__.py
-│   ├── config.py
-│   ├── decorators.py
-│   ├── models.py
-│   └── scam_detector.py
-├── .env
+│   ├── __init__.py             # Application factory & extension initialization
+│   ├── config.py               # Environment configuration
+│   ├── decorators.py           # Security decorators (role_required, company_verified_required)
+│   ├── models.py               # SQLAlchemy database models & relationships
+│   ├── scam_detector.py        # 10-rule heuristic scam risk engine
+│   ├── utils.py                # Backwards-compatible validator re-exports
+│   └── validators.py           # Consolidated input and file validators
+├── instance/
+│   └── uploads/
+│       ├── company_docs/       # Private company verification documents
+│       └── resumes/            # Private student resume files
+├── scripts/
+│   ├── evaluate_detector.py    # 36-sample labeled detector benchmark & metrics
+│   ├── migrate_company_docs.py # Company docs instance storage migration
+│   ├── migrate_db.py           # Idempotent database schema migration
+│   └── migrate_resumes.py      # Resumes instance storage migration
+├── tests/
+│   ├── test_admin_completeness.py
+│   ├── test_private_resumes.py
+│   ├── test_scam_detector.py
+│   ├── test_schema_sync.py
+│   ├── test_security.py
+│   ├── test_security_hardening.py
+│   └── test_synopsis_gaps.py
 ├── .env.example
 ├── .gitignore
-├── AUDIT_LOG.md
-├── README.md
 ├── requirements.txt
-├── run.py
-├── schema.sql
-└── seed.py
+├── run.py                      # Application entry point
+├── schema.sql                  # MySQL database schema definition
+├── seed.py                     # Initial demo data populator
+└── README.md
 ```
+
+---
+
+## ⚙️ Setup & Installation Instructions
+
+### Prerequisites
+- Python 3.10+
+- MySQL Server 5.7+ / 8.0+ (via XAMPP, WAMP, Docker, or standalone MySQL)
+
+### Step 1: Clone Repository & Create Virtual Environment
+```powershell
+# Navigate to project root
+cd online-internship
+
+# Create Python virtual environment
+python -m venv venv
+
+# Activate virtual environment (Windows PowerShell)
+.\venv\Scripts\Activate.ps1
+
+# Activate virtual environment (Linux/macOS)
+# source venv/bin/activate
+```
+
+### Step 2: Install Dependencies
+```powershell
+pip install -r requirements.txt
+```
+
+### Step 3: Configure Environment Variables
+Copy `.env.example` to `.env`:
+```powershell
+Copy-Item .env.example .env
+```
+Configure your credentials in `.env`:
+```ini
+FLASK_APP=run.py
+FLASK_DEBUG=1
+SECRET_KEY=replace-with-a-secure-random-key-in-production
+
+# MySQL Database Configuration
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_USER=root
+MYSQL_PASSWORD=
+MYSQL_DB=smart_internship_db
+
+# Security & Rate Limiting
+RATELIMIT_ENABLED=True
+RATELIMIT_STORAGE_URI=memory://
+```
+
+### Step 4: Create MySQL Database & Initialize Schema
+Using the MySQL CLI or phpMyAdmin:
+```powershell
+# Create Database
+mysql -u root -e "CREATE DATABASE IF NOT EXISTS smart_internship_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+# Import Schema
+mysql -u root smart_internship_db < schema.sql
+```
+
+### Step 5: Run Database Migrations (Idempotent)
+Verify and apply all schema updates:
+```powershell
+python scripts/migrate_db.py
+```
+
+### Step 6: Seed Demo Data
+Populate demo categories, users, legitimate postings, and flagged scam examples:
+```powershell
+python seed.py
+```
+
+### Step 7: Start the Application
+```powershell
+python run.py
+```
+Open your browser and navigate to: **`http://127.0.0.1:5000`**
+
+---
+
+## 🔑 Default Credentials for Demo & Viva
+
+| Role | Email Address | Password | Profile Name |
+|:---|:---|:---|:---|
+| **System Administrator** | `admin@smartintern.com` | `Admin@12345` | Dr. Rajesh V. Sharma |
+| **Student** | `student@smartintern.com` | `Student@12345` | Aarav Sharma (BCA 3rd Year) |
+| **Verified Company 1** | `hr@technovaglobal.com` | `Company@12345` | TechNova Global Solutions |
+| **Verified Company 2** | `talent@cloudscalesystems.com` | `Company@12345` | CloudScale Systems |
+| **Suspicious Company** | `fastjobscorp@gmail.com` | `Scam@12345` | Apex Career Ventures (Pending) |
+
+*(Quick test credentials pills are also available directly on the login page for one-click testing.)*
+
+---
+
+## 🧪 Testing & Evaluation
+
+### Run Test Suites (153 Automated Tests)
+```powershell
+pytest
+```
+Covers:
+- `test_admin_completeness.py`: Moderation cascades, appeal workflows, report thresholds.
+- `test_private_resumes.py`: Resume storage isolation, authorized serving, migration safety.
+- `test_scam_detector.py`: Heuristics, weights, negation handling, leetspeak normalization.
+- `test_schema_sync.py`: Table columns, nullability, seed compatibility.
+- `test_security.py`: Role authorization, IDOR protection, CSRF enforcement.
+- `test_security_hardening.py`: Open redirects, login rate limiting, password enforcement, form validation.
+- `test_synopsis_gaps.py`: Search filters, company documents, footer placeholders.
+
+### Run Scam Detector Benchmark
+```powershell
+python scripts/evaluate_detector.py
+```
+Evaluates the detector across 36 labeled examples (scam, legitimate, negated, obfuscated, paraphrased) and prints confusion matrix, precision, recall, and F1-score.

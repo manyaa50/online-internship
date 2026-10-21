@@ -3,10 +3,11 @@ from datetime import datetime, timezone
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, send_from_directory
 from flask_login import login_required, current_user
 from app.models import (
-    db, User, Admin, StudentProfile, Company, CompanyVerification,
-    Internship, InternshipCategory, ScamCheck, ScamReport, Notification, Application
+    db, User, StudentProfile, Company, CompanyVerification,
+    Internship, InternshipCategory, ScamCheck, ScamReport, Application
 )
 from app.decorators import role_required
+from app.services.notifications import notify
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -91,14 +92,13 @@ def verify_company(company_id, action):
             )
             db.session.add(verif_log)
 
-            notif = Notification(
+            notify(
                 user_id=company.user_id,
                 title="🎉 Company Verification Approved!",
                 message="Your company profile has been verified by the administrator. You may now post internships.",
                 category="verification",
                 link_url=url_for('company.create_internship')
             )
-            db.session.add(notif)
             flash(f'Company "{company.company_name}" has been approved.', 'success')
 
         elif action == 'reject':
@@ -113,14 +113,13 @@ def verify_company(company_id, action):
             )
             db.session.add(verif_log)
 
-            notif = Notification(
+            notify(
                 user_id=company.user_id,
                 title="Company Verification Rejected",
                 message=f"Your verification was not approved. Reason: {reason or 'Invalid documents'}. You can update your profile and resubmit.",
                 category="verification",
                 link_url=url_for('company.profile')
             )
-            db.session.add(notif)
 
             # Moderation cascade: set company's active internships to 'closed'
             active_postings = Internship.query.filter_by(company_id=company.id, status='active').all()
@@ -136,12 +135,12 @@ def verify_company(company_id, action):
                     pair_key = (student_user_id, app_item.internship_id)
                     if pair_key not in notified_pairs:
                         notified_pairs.add(pair_key)
-                        db.session.add(Notification(
+                        notify(
                             user_id=student_user_id,
                             title="Internship Posting Closed",
                             message=f"The internship '{app_item.internship.title}' at '{company.company_name}' has been closed because the company verification was revoked.",
                             category="admin"
-                        ))
+                        )
 
             flash(f'Company "{company.company_name}" has been marked as rejected.', 'warning')
 
@@ -207,14 +206,13 @@ def review_flagged(internship_id, action):
                 if scam_check.appeal_status == 'pending':
                     scam_check.appeal_status = 'reviewed'
 
-            notif = Notification(
+            notify(
                 user_id=internship.company.user_id,
                 title="Internship Posting Approved",
                 message=f"Your internship '{internship.title}' has been reviewed and approved by admin.",
                 category="admin",
                 link_url=url_for('internships.detail', internship_id=internship.id)
             )
-            db.session.add(notif)
             flash(f'Internship "{internship.title}" approved and published.', 'success')
 
         elif action == 'reject':
@@ -226,23 +224,22 @@ def review_flagged(internship_id, action):
                 if scam_check.appeal_status == 'pending':
                     scam_check.appeal_status = 'reviewed'
 
-            notif = Notification(
+            notify(
                 user_id=internship.company.user_id,
                 title="Internship Posting Rejected",
                 message=f"Your internship '{internship.title}' was rejected by the admin due to high scam risk score and policy violation.",
                 category="admin",
                 link_url=url_for('company.manage_internships')
             )
-            db.session.add(notif)
 
             # Notify students who applied to this posting that it has been delisted
             for app_item in internship.applications:
-                db.session.add(Notification(
+                notify(
                     user_id=app_item.student.user_id,
                     title="Internship Posting Delisted",
                     message=f"The internship posting '{internship.title}' has been removed by platform administrators.",
                     category="admin"
-                ))
+                )
 
             flash(f'Internship "{internship.title}" has been rejected and delisted.', 'danger')
 
@@ -281,14 +278,13 @@ def review_appeal(internship_id, action):
             scam_check.admin_verdict = 'approved'
             scam_check.admin_notes = notes or "Appeal reviewed and approved by administrator."
 
-            notif = Notification(
+            notify(
                 user_id=internship.company.user_id,
                 title="Appeal Approved - Internship Restored",
                 message=f"Your appeal for '{internship.title}' has been approved by admin. The listing is now active.",
                 category="admin",
                 link_url=url_for('internships.detail', internship_id=internship.id)
             )
-            db.session.add(notif)
             flash(f'Appeal for "{internship.title}" approved. Listing is now active.', 'success')
 
         elif action == 'reject':
@@ -296,23 +292,22 @@ def review_appeal(internship_id, action):
             scam_check.admin_verdict = 'rejected'
             scam_check.admin_notes = notes or "Appeal reviewed and rejected by administrator."
 
-            notif = Notification(
+            notify(
                 user_id=internship.company.user_id,
                 title="Appeal Rejected",
                 message=f"Your appeal for '{internship.title}' was reviewed and rejected. The listing remains delisted.",
                 category="admin",
                 link_url=url_for('company.manage_internships')
             )
-            db.session.add(notif)
 
             # Notify students who applied to this posting that it has been delisted
             for app_item in internship.applications:
-                db.session.add(Notification(
+                notify(
                     user_id=app_item.student.user_id,
                     title="Internship Posting Delisted",
                     message=f"The internship posting '{internship.title}' has been delisted following administrative appeal review.",
                     category="admin"
-                ))
+                )
             flash(f'Appeal for "{internship.title}" has been rejected.', 'warning')
 
         db.session.commit()
@@ -368,12 +363,12 @@ def toggle_user_block(user_id):
                     pair_key = (student_user_id, app_item.internship_id)
                     if pair_key not in notified_pairs:
                         notified_pairs.add(pair_key)
-                        db.session.add(Notification(
+                        notify(
                             user_id=student_user_id,
                             title="Internship Posting Closed",
                             message=f"The internship '{app_item.internship.title}' at '{company.company_name}' has been closed because the employer account was suspended.",
                             category="admin"
-                        ))
+                        )
 
         db.session.commit()
         flash(f'User {user.email} has been {status_str}.', 'info')
@@ -414,22 +409,21 @@ def resolve_report(report_id):
         if request.form.get('delist_internship') and report.internship:
             report.internship.status = 'rejected'
             for app_item in report.internship.applications:
-                db.session.add(Notification(
+                notify(
                     user_id=app_item.student.user_id,
                     title="Internship Posting Delisted",
                     message=f"The internship posting '{report.internship.title}' was delisted after an investigation.",
                     category="admin"
-                ))
+                )
             flash(f'Internship "{report.internship.title}" has been delisted.', 'warning')
 
         # Notify student who reported it
-        notif = Notification(
+        notify(
             user_id=report.student.user_id,
             title="Scam Report Update",
             message=f"Your report regarding {report.internship.title if report.internship else 'a company'} was reviewed. Resolution: {resolution}",
             category="report"
         )
-        db.session.add(notif)
         db.session.commit()
         flash('Report updated and reporter notified.', 'success')
     except Exception as e:

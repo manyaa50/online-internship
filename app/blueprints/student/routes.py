@@ -1,18 +1,12 @@
 import os
-import uuid
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, send_from_directory, abort
 from flask_login import login_required, current_user
-from werkzeug.utils import secure_filename
-from app.models import db, StudentProfile, Resume, Application, Internship, Notification, Company
+from app.models import db, StudentProfile, Resume, Application, Internship, Company
 from app.decorators import role_required
-from app.utils import validate_resume_upload, validate_indian_phone
+from app.services.uploads import save_profile_picture, save_resume
+from app.validators import validate_resume_upload, validate_indian_phone
 
 student_bp = Blueprint('student', __name__)
-
-
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_RESUME_EXTENSIONS']
 
 
 @student_bp.route('/dashboard')
@@ -131,11 +125,8 @@ def profile():
         # Profile Picture Upload
         pic_file = request.files.get('profile_pic')
         if pic_file and pic_file.filename:
-            pic_ext = pic_file.filename.rsplit('.', 1)[-1].lower()
-            if pic_ext in current_app.config['ALLOWED_IMAGE_EXTENSIONS']:
-                pic_name = f"avatar_{student.id}_{uuid.uuid4().hex[:8]}.{pic_ext}"
-                pic_path = os.path.join(current_app.config['UPLOAD_FOLDER'], pic_name)
-                pic_file.save(pic_path)
+            pic_name = save_profile_picture(pic_file, student.id)
+            if pic_name:
                 student.profile_pic = pic_name
 
         db.session.commit()
@@ -156,17 +147,10 @@ def upload_resume():
         return redirect(url_for('student.profile'))
 
     file = request.files['resume_file']
-    is_valid, err_msg, meta = validate_resume_upload(file)
+    is_valid, err_msg, res_info = save_resume(file, student.id)
     if not is_valid:
         flash(err_msg, 'danger')
         return redirect(url_for('student.profile'))
-
-    unique_filename = f"resume_{student.id}_{uuid.uuid4().hex[:8]}.{meta['ext']}"
-    save_dir = current_app.config['RESUME_FOLDER']
-    os.makedirs(save_dir, exist_ok=True)
-    save_path = os.path.join(save_dir, unique_filename)
-
-    file.save(save_path)
 
     # If it's the first resume or marked primary, reset others
     is_first = student.resumes.count() == 0
@@ -180,10 +164,10 @@ def upload_resume():
 
     new_resume = Resume(
         student_id=student.id,
-        filename=unique_filename,
-        original_name=meta['original_name'],
-        file_path=f"instance/uploads/resumes/{unique_filename}",
-        file_size=meta['file_size'],
+        filename=res_info['filename'],
+        original_name=res_info['original_name'],
+        file_path=res_info['file_path'],
+        file_size=res_info['file_size'],
         is_primary=make_primary
     )
     db.session.add(new_resume)
