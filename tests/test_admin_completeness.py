@@ -747,7 +747,7 @@ def test_automatic_flagging_avoids_repeated_notifications_for_subsequent_reports
         # Baseline threshold notification count
         db.session.add(Notification(
             user_id=admin_u.id,
-            title="⚠️ Internship Automatically Flagged (Report Threshold)",
+            title="Internship Automatically Flagged (Report Threshold)",
             message="Initial threshold alert",
             category="scam_alert"
         ))

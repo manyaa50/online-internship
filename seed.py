@@ -22,10 +22,10 @@ app = create_app()
 
 def seed_database():
     with app.app_context():
-        print("🌱 Initializing Database Schema...")
+        print("[*] Initializing Database Schema...")
         db.create_all()
 
-        print("🔍 Checking existing seed data...")
+        print("[*] Checking existing seed data...")
         if User.query.filter_by(email='admin@smartintern.com').first():
             print("Database already contains seed data. Skipping duplicate seed.")
             return
@@ -180,8 +180,8 @@ def seed_database():
             cgpa=8.85,
             skills="Python, Flask, JavaScript, SQL, HTML5, Bootstrap, Git, REST APIs",
             bio="Motivated 3rd-year BCA undergraduate with a solid foundation in backend Python engineering and relational databases. Seeking practical internship experience in software engineering.",
-            linkedin_url="https://linkedin.com/in/aarav-sharma-demo",
-            github_url="https://github.com/aarav-sharma-demo",
+            linkedin_url="https://linkedin.com/in/aarav-sharma",
+            github_url="https://github.com/aarav-sharma",
             preferred_domain="Web Development",
             preferred_location="Remote",
             preferred_duration="3 to 6 Months"
@@ -189,7 +189,7 @@ def seed_database():
         db.session.add(student)
         db.session.flush()
 
-        # Sample dummy resume
+        # Sample student resume record
         sample_resume = Resume(
             student_id=student.id,
             filename="sample_bca_resume.pdf",
@@ -503,7 +503,7 @@ def seed_database():
         db.session.add(scam_report)
 
         db.session.commit()
-        print("✅ Database successfully seeded with:")
+        print("[OK] Database successfully seeded with:")
         print("   - Default Admin: admin@smartintern.com (Password: Admin@12345)")
         print("   - Sample Student: student@smartintern.com (Password: Student@12345)")
         print("   - Sample Company 1: hr@technovaglobal.com (Password: Company@12345)")

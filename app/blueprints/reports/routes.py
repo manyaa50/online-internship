@@ -28,7 +28,7 @@ def check_and_auto_flag_internship(internship_id):
         for admin_user in admins:
             notify(
                 user_id=admin_user.id,
-                title="⚠️ Internship Automatically Flagged (Report Threshold)",
+                title="Internship Automatically Flagged (Report Threshold)",
                 message=(f"Internship '{internship.title}' has accumulated {open_reports_count} open "
                          f"scam reports and has been automatically quarantined for review."),
                 category="scam_alert",
@@ -81,7 +81,7 @@ def submit_report():
         for admin_user in admins:
             notify(
                 user_id=admin_user.id,
-                title="🚨 New Scam Report Filed",
+                title="New Scam Report Filed",
                 message=f"Student {student.full_name} reported '{target_name}' for '{reason}'.",
                 category="report",
                 link_url=url_for('admin.reports')

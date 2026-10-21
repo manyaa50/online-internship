@@ -329,7 +329,7 @@
                                 <select class="form-select" name="resume_id" id="resumeSelect">
                                     {% for res in student_resumes %}
                                         <option value="{{ res.id }}" {% if res.is_primary %}selected{% endif %}>
-                                            {{ res.original_name }} (Uploaded {{ res.uploaded_at.strftime('%b %d, %Y') }}) {% if res.is_primary %}⭐ [Primary]{% endif %}
+                                            {{ res.original_name }} (Uploaded {{ res.uploaded_at.strftime('%b %d, %Y') }}) {% if res.is_primary %}(Primary){% endif %}
                                         </option>
                                     {% endfor %}
                                 </select>

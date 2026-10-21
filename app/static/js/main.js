@@ -83,14 +83,4 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 });
-
-// Quick fill credentials for final-year demo convenience
-function fillDemoCredentials(email, password) {
-    const emailField = document.getElementById('email');
-    const passField = document.getElementById('password');
-    if (emailField && passField) {
-        emailField.value = email;
-        passField.value = password;
-        emailField.focus();
-    }
 }

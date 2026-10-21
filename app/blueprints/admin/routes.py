@@ -94,7 +94,7 @@ def verify_company(company_id, action):
 
             notify(
                 user_id=company.user_id,
-                title="🎉 Company Verification Approved!",
+                title="Company Verification Approved",
                 message="Your company profile has been verified by the administrator. You may now post internships.",
                 category="verification",
                 link_url=url_for('company.create_internship')

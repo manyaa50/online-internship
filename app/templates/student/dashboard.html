@@ -7,7 +7,7 @@
     <!-- Header Greeting -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
         <div>
-            <h2 class="fw-bold mb-1">Welcome back, {{ student.full_name }}! 👋</h2>
+            <h2 class="fw-bold mb-1">Welcome back, {{ student.full_name }}</h2>
             <p class="text-muted mb-0">
                 <i class="bi bi-mortarboard me-1"></i>{{ student.degree or 'Student' }} &bull; {{ student.college_name or 'College not set' }}
             </p>
@@ -99,7 +99,7 @@
                                 {% elif app.status == 'Under Review' %}
                                     <span class="badge status-under-review">Under Review</span>
                                 {% elif app.status == 'Selected' %}
-                                    <span class="badge status-selected">🎉 Selected</span>
+                                    <span class="badge status-selected">Selected</span>
                                 {% elif app.status == 'Rejected' %}
                                     <span class="badge status-rejected">Rejected</span>
                                 {% elif app.status == 'Completed' %}

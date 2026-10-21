@@ -4,7 +4,7 @@ An intelligent web application built for a **BCA final-year project**. It featur
 
 ---
 
-## 🚀 Key Modules & System Architecture
+## Key Modules & System Architecture
 
 ### 1. Role-Based Access Control (RBAC)
 - **Student:**
@@ -34,7 +34,7 @@ An intelligent web application built for a **BCA final-year project**. It featur
 
 ---
 
-## 🛡️ Scam Detection Engine (`app/scam_detector.py`)
+## Scam Detection Engine (`app/scam_detector.py`)
 
 The automated safety engine scores internship postings against 10 weighted heuristic rules (0–100 risk score) with bounded contextual negation handling and leetspeak/obfuscation text normalization:
 
@@ -59,7 +59,7 @@ The automated safety engine scores internship postings against 10 weighted heuri
 
 ---
 
-## 🔒 Security Architecture
+## Security Architecture
 
 - **Private Resume Storage:** Resumes are stored outside the public document root in `instance/uploads/resumes/`. Access is strictly controlled via an authorized route (`/student/resume/download/<id>`) that enforces ownership and applicant permissions.
 - **Private Verification Documents:** Company compliance documents are stored in `instance/uploads/company_docs/` and accessible exclusively to administrators via `/admin/verifications/document/<company_id>`.
@@ -72,7 +72,7 @@ The automated safety engine scores internship postings against 10 weighted heuri
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```text
 online-internship/
@@ -150,7 +150,7 @@ online-internship/
 
 ---
 
-## ⚙️ Setup & Installation Instructions
+## Setup & Installation Instructions
 
 ### Prerequisites
 - Python 3.10+
@@ -229,7 +229,7 @@ Open your browser and navigate to: **`http://127.0.0.1:5000`**
 
 ---
 
-## 🔑 Default Credentials for Demo & Viva
+## Default Test Accounts & Seed Credentials
 
 | Role | Email Address | Password | Profile Name |
 |:---|:---|:---|:---|
@@ -239,11 +239,11 @@ Open your browser and navigate to: **`http://127.0.0.1:5000`**
 | **Verified Company 2** | `talent@cloudscalesystems.com` | `Company@12345` | CloudScale Systems |
 | **Suspicious Company** | `fastjobscorp@gmail.com` | `Scam@12345` | Apex Career Ventures (Pending) |
 
-*(Quick test credentials pills are also available directly on the login page for one-click testing.)*
+*(These accounts are seeded automatically via `python seed.py` for local evaluation and testing.)*
 
 ---
 
-## 🧪 Testing & Evaluation
+## Testing & Evaluation
 
 ### Run Test Suites (153 Automated Tests)
 ```powershell
