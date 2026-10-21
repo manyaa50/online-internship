@@ -17,9 +17,6 @@ Comprehensive test suite for Group 2 (Private Resumes):
       and idempotency.
 """
 import io
-import os
-import shutil
-import tempfile
 import zipfile
 import pytest
 from pathlib import Path

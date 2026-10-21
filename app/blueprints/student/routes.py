@@ -1,10 +1,10 @@
 import os
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, send_from_directory, abort
 from flask_login import login_required, current_user
-from app.models import db, StudentProfile, Resume, Application, Internship, Company
+from app.models import db, StudentProfile, Resume, Application, Internship
 from app.decorators import role_required
 from app.services.uploads import save_profile_picture, save_resume
-from app.validators import validate_resume_upload, validate_indian_phone
+from app.validators import validate_indian_phone
 
 student_bp = Blueprint('student', __name__)
 

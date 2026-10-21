@@ -25,7 +25,6 @@ Checks:
 
 Run with: venv\\Scripts\\python.exe -m pytest tests/test_security.py -v
 """
-import json
 import pytest
 from datetime import date, timedelta
 from app import create_app

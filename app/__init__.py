@@ -6,7 +6,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 from app.config import Config
-from app.models import db, User, Internship, InternshipCategory, ScamReport, Company
+from app.models import db, User, Internship, InternshipCategory, Company
 
 login_manager = LoginManager()
 csrf = CSRFProtect()

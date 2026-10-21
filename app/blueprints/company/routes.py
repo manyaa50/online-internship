@@ -1,16 +1,14 @@
 import os
-import uuid
 import json
 from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, current_app, send_from_directory
 from flask_login import login_required, current_user
-from app.models import db, Company, Internship, InternshipCategory, Application, ScamCheck, User, CompanyVerification
+from app.models import db, Internship, InternshipCategory, Application, ScamCheck, User, CompanyVerification
 from app.decorators import role_required, company_verified_required
 from app.scam_detector import ScamDetector
 from app.services.notifications import notify
 from app.services.uploads import save_company_logo, save_verification_doc
 from app.validators import (
-    validate_verification_document,
     validate_email_address,
     validate_indian_phone,
     validate_gstin,

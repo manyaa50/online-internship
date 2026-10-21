@@ -133,6 +133,7 @@ online-internship/
 │   └── migrate_resumes.py      # Resumes instance storage migration
 ├── tests/
 │   ├── test_admin_completeness.py
+│   ├── test_data_integrity_and_demo_readiness.py
 │   ├── test_private_resumes.py
 │   ├── test_scam_detector.py
 │   ├── test_schema_sync.py
@@ -184,19 +185,24 @@ Copy-Item .env.example .env
 Configure your credentials in `.env`:
 ```ini
 FLASK_APP=run.py
-FLASK_DEBUG=1
+FLASK_DEBUG=false
 SECRET_KEY=replace-with-a-secure-random-key-in-production
 
-# MySQL Database Configuration
-MYSQL_HOST=localhost
-MYSQL_PORT=3306
-MYSQL_USER=root
-MYSQL_PASSWORD=
-MYSQL_DB=smart_internship_db
+# MySQL Database Configuration (Defaults for XAMPP / WAMP)
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=smart_internship_db
 
 # Security & Rate Limiting
-RATELIMIT_ENABLED=True
+RATELIMIT_ENABLED=true
 RATELIMIT_STORAGE_URI=memory://
+
+# Portal Support & Company Contact Details (Optional)
+# COMPANY_CONTACT_EMAIL=contact@smartintern-placeholder.example.com
+# COMPANY_CONTACT_PHONE=+91 (000) 000-0000 / +91 98765-00000
+# COMPANY_CONTACT_ADDRESS=Plot No. 000, Innovation Tech Park, Bengaluru, Karnataka, India
 ```
 
 ### Step 4: Create MySQL Database & Initialize Schema
@@ -248,12 +254,13 @@ Open your browser and navigate to: **`http://127.0.0.1:5000`**
 
 ## Testing & Evaluation
 
-### Run Test Suites (153 Automated Tests)
+### Run Test Suites (161 Automated Tests across 8 Test Suites)
 ```powershell
 pytest
 ```
 Covers:
 - `test_admin_completeness.py`: Moderation cascades, appeal workflows, report thresholds.
+- `test_data_integrity_and_demo_readiness.py`: Dynamic dashboard calculations, test fixture separation, absence of demo shortcuts.
 - `test_private_resumes.py`: Resume storage isolation, authorized serving, migration safety.
 - `test_scam_detector.py`: Heuristics, weights, negation handling, leetspeak normalization.
 - `test_schema_sync.py`: Table columns, nullability, seed compatibility.

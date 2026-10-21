@@ -13,7 +13,6 @@ Ensures that all required columns on `internships` and `scam_checks` tables exis
 Safe for repeated runs; does not drop, overwrite, or reset existing tables or data.
 """
 import sys
-import os
 from pathlib import Path
 import sqlalchemy as sa
 
@@ -23,7 +22,6 @@ if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
 from app import create_app
-from app.models import db
 
 
 def get_column_definitions(dialect_name: str):

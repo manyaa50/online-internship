@@ -1,7 +1,7 @@
 import os
 import sys
 import json
-from datetime import datetime, date, timedelta, timezone
+from datetime import date, timedelta
 
 if sys.platform == 'win32':
     try:
@@ -13,7 +13,7 @@ if sys.platform == 'win32':
 from app import create_app
 from app.models import (
     db, User, Admin, StudentProfile, Resume, Company, CompanyVerification,
-    InternshipCategory, Internship, ScamCheck, ScamReport, Notification, Application
+    InternshipCategory, Internship, ScamCheck, ScamReport, Application
 )
 from app.scam_detector import ScamDetector
 

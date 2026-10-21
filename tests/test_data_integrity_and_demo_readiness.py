@@ -13,8 +13,8 @@ import pytest
 from app import create_app
 from app.config import Config
 from app.models import (
-    db, User, Admin, StudentProfile, Company, CompanyVerification,
-    InternshipCategory, Internship, ScamCheck, ScamReport, Application, Resume
+    db, User, Admin, StudentProfile, Company,
+    InternshipCategory, Internship, ScamCheck, Application, Resume
 )
 from seed import seed_database
 

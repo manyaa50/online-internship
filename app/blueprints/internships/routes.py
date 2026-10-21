@@ -1,13 +1,10 @@
-import os
-import uuid
-from datetime import datetime, date
+from datetime import date
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, abort
 from flask_login import login_required, current_user
-from app.models import db, Internship, InternshipCategory, Application, Resume, Company, ScamCheck, User
+from app.models import db, Internship, InternshipCategory, Application, Resume, Company, User
 from app.decorators import role_required
 from app.services.notifications import notify
 from app.services.uploads import save_resume
-from app.validators import validate_resume_upload
 
 internships_bp = Blueprint('internships', __name__)
 

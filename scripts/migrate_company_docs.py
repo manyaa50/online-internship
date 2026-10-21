@@ -7,7 +7,6 @@ for Group 4 (Company Verification Documents).
 Safe for repeated runs; does not drop or overwrite existing tables or data.
 """
 import sys
-import os
 from pathlib import Path
 import sqlalchemy as sa
 
@@ -16,7 +15,6 @@ if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
 from app import create_app
-from app.models import db
 
 
 def run_migration(app=None, engine=None):

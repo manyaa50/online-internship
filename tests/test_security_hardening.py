@@ -21,7 +21,6 @@ Covers:
 """
 import pytest
 from datetime import date, timedelta
-from flask import session
 
 from app import create_app
 from app.config import Config

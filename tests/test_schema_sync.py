@@ -31,10 +31,7 @@ if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
 from app import create_app
-from app.models import (
-    db, User, Admin, StudentProfile, Resume, Company, CompanyVerification,
-    InternshipCategory, Internship, ScamCheck, Application, ScamReport, Notification
-)
+from app.models import db, Internship, ScamCheck
 from scripts import migrate_db
 
 

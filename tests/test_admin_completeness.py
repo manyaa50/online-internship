@@ -25,15 +25,12 @@ Comprehensive test suite for Group 3 (Admin Completeness):
 """
 from datetime import datetime, date, timedelta, timezone
 import pytest
-from flask import url_for
-
 from app import create_app
 from app.config import Config
 from app.models import (
     db, User, Admin, StudentProfile, Company, CompanyVerification,
     Internship, InternshipCategory, ScamCheck, ScamReport, Notification, Application, Resume
 )
-from app.blueprints.reports.routes import check_and_auto_flag_internship
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

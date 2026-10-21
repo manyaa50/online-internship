@@ -31,10 +31,7 @@ Comprehensive test suite for Group 4 (Synopsis Feature Gaps):
      - scripts/migrate_company_docs.py handles additions and repeated runs safely.
 """
 import io
-import os
-import shutil
-import tempfile
-from datetime import datetime, date, timedelta
+from datetime import date, timedelta
 import pytest
 from pathlib import Path
 from werkzeug.datastructures import FileStorage
