@@ -1,102 +1,422 @@
 /* ==========================================================================
    Smart Online Internship Management System with Scam Prevention
-   Custom Theme Stylesheet
+   Professional Academic Design System Stylesheet
    ========================================================================== */
 
+/* --- 1. Design System Tokens & CSS Variables --- */
 :root {
-    --primary-color: #2563eb;
-    --primary-dark: #1d4ed8;
-    --primary-light: #eff6ff;
-    --secondary-color: #475569;
-    --success-color: #10b981;
-    --warning-color: #f59e0b;
-    --danger-color: #ef4444;
-    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    /* Brand & Primary Palette (Accessible Deep Navy / Indigo) */
+    --primary-color: #1e40af;
+    --primary-hover: #1e3a8a;
+    --primary-subtle: #eff6ff;
+    --primary-border: #bfdbfe;
+
+    /* Semantic Status Colors */
+    --success-color: #059669;
+    --success-hover: #047857;
+    --success-subtle: #ecfdf5;
+    --success-border: #a7f3d0;
+
+    --warning-color: #d97706;
+    --warning-hover: #b45309;
+    --warning-subtle: #fffbeb;
+    --warning-border: #fde68a;
+
+    --danger-color: #dc2626;
+    --danger-hover: #b91c1c;
+    --danger-subtle: #fef2f2;
+    --danger-border: #fecaca;
+
+    --info-color: #0284c7;
+    --info-subtle: #f0f9ff;
+    --info-border: #bae6fd;
+
+    /* Neutrals & Surfaces */
+    --bg-body: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-muted: #f1f5f9;
+    --border-color: #e2e8f0;
+    --border-dark: #cbd5e1;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+
+    /* Elevation & Shadows */
+    --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+    --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 1px 2px -1px rgba(15, 23, 42, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.05);
+
+    /* Radii */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
 }
 
+/* --- 2. Base Typography & Accessibility Reset --- */
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    color: #1e293b;
-    background-color: #f8fafc;
+    color: var(--text-primary);
+    background-color: var(--bg-body);
+    line-height: 1.55;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 main {
     flex: 1 0 auto;
 }
 
-/* Navbar */
+/* Accessible Keyboard Focus Rings */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.btn:focus-visible {
+    outline: 2px solid var(--primary-color) !important;
+    outline-offset: 2px !important;
+    box-shadow: none !important;
+}
+
+/* Skip link for keyboard accessibility */
+.skip-link {
+    position: absolute;
+    top: -50px;
+    left: 10px;
+    background: var(--primary-color);
+    color: #ffffff;
+    padding: 0.5rem 1rem;
+    z-index: 1050;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+    top: 10px;
+}
+
+/* Typography Scale */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+h1 { font-size: 2rem; }
+h2 { font-size: 1.625rem; }
+h3 { font-size: 1.375rem; }
+h4 { font-size: 1.15rem; }
+h5 { font-size: 1rem; }
+h6 { font-size: 0.875rem; }
+
+@media (min-width: 768px) {
+    h1 { font-size: 2.25rem; }
+    h2 { font-size: 1.75rem; }
+    h3 { font-size: 1.5rem; }
+}
+
+/* --- 3. Navigation Bar --- */
 .navbar-custom {
-    background: #ffffff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: var(--shadow-xs);
+    padding: 0.75rem 0;
 }
 
 .navbar-brand {
     font-weight: 700;
-    letter-spacing: -0.5px;
+    font-size: 1.2rem;
+    letter-spacing: -0.03em;
     color: var(--primary-color) !important;
+}
+
+.navbar-brand .brand-sub {
+    color: var(--text-primary);
 }
 
 .nav-link {
     font-weight: 500;
-    color: #475569 !important;
-    transition: color 0.15s ease-in-out;
+    font-size: 0.875rem;
+    color: var(--text-secondary) !important;
+    padding: 0.5rem 0.75rem !important;
+    border-radius: var(--radius-sm);
+    transition: color 0.15s ease, background-color 0.15s ease;
 }
 
-.nav-link:hover, .nav-link.active {
+.nav-link:hover {
     color: var(--primary-color) !important;
+    background-color: var(--bg-muted);
 }
 
-/* Hero Section */
-.hero-section {
-    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
-    color: #ffffff;
-    padding: 4.5rem 0;
-    border-radius: 0 0 2rem 2rem;
+.nav-link.active {
+    color: var(--primary-color) !important;
+    font-weight: 600;
 }
 
-/* Feature Cards */
+.dropdown-menu {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    padding: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.dropdown-item {
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+    background-color: var(--primary-subtle);
+    color: var(--primary-color);
+}
+
+.dropdown-item.text-danger:hover, .dropdown-item.text-danger:focus {
+    background-color: var(--danger-subtle);
+    color: var(--danger-color) !important;
+}
+
+.dropdown-header {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    padding: 0.375rem 0.75rem;
+}
+
+/* --- 4. Cards & Containers --- */
 .card {
-    border: 1px solid #e2e8f0;
-    border-radius: 0.75rem;
-    box-shadow: var(--card-shadow);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-xs);
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .card:hover {
-    box-shadow: var(--hover-shadow);
+    box-shadow: var(--shadow-sm);
+}
+
+.card-header {
+    background-color: var(--bg-surface);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+}
+
+.card-hover {
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
 .card-hover:hover {
-    transform: translateY(-4px);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-dark);
 }
 
-/* Risk Badges */
+/* Professional Metric Tile */
+.stat-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    position: relative;
+    box-shadow: var(--shadow-xs);
+}
+
+.stat-card.accent-primary { border-top: 3px solid var(--primary-color); }
+.stat-card.accent-success { border-top: 3px solid var(--success-color); }
+.stat-card.accent-warning { border-top: 3px solid var(--warning-color); }
+.stat-card.accent-danger  { border-top: 3px solid var(--danger-color); }
+.stat-card.accent-info    { border-top: 3px solid var(--info-color); }
+.stat-card.accent-dark    { border-top: 3px solid var(--secondary-color); }
+
+.stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+    margin-bottom: 0.25rem;
+}
+
+.stat-meta {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+/* --- 5. Buttons & Actions --- */
+.btn {
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s ease;
+}
+
+.btn-sm {
+    font-size: 0.8125rem;
+    padding: 0.3125rem 0.625rem;
+}
+
+.btn-lg {
+    font-size: 1rem;
+    padding: 0.6875rem 1.5rem;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #ffffff;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+    color: #ffffff;
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-border);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-subtle);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.btn-outline-secondary {
+    color: var(--text-secondary);
+    border-color: var(--border-color);
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--bg-muted);
+    border-color: var(--border-dark);
+    color: var(--text-primary);
+}
+
+/* --- 6. Form Controls & Labels --- */
+.form-label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.375rem;
+}
+
+.form-control, .form-select {
+    border: 1px solid var(--border-dark);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    padding: 0.5rem 0.75rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.15);
+}
+
+.form-control-sm, .form-select-sm {
+    font-size: 0.8125rem;
+    padding: 0.3125rem 0.5rem;
+}
+
+.form-text {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+.input-group-text {
+    background-color: var(--bg-muted);
+    border: 1px solid var(--border-dark);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+/* --- 7. Badges & Status Indicators --- */
+.badge {
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+    padding: 0.3125rem 0.5625rem;
+    border-radius: var(--radius-sm);
+}
+
+/* Scam Risk Scoring Badges */
 .badge-risk-low {
-    background-color: #d1fae5;
+    background-color: #ecfdf5;
     color: #065f46;
     border: 1px solid #a7f3d0;
 }
 
 .badge-risk-medium {
-    background-color: #fef3c7;
+    background-color: #fffbeb;
     color: #92400e;
     border: 1px solid #fde68a;
 }
 
 .badge-risk-high {
-    background-color: #fee2e2;
+    background-color: #fef2f2;
     color: #991b1b;
     border: 1px solid #fecaca;
 }
 
-/* Scam Safety Banner */
+/* Application Status Badges */
+.status-applied {
+    background-color: #f0f9ff;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+}
+
+.status-under-review {
+    background-color: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+.status-selected {
+    background-color: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+.status-rejected {
+    background-color: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.status-completed {
+    background-color: #f5f3ff;
+    color: #6d28d9;
+    border: 1px solid #ddd6fe;
+}
+
+/* Scam Alert Review Card Accents */
 .scam-alert-card {
-    border-left: 5px solid;
-    border-radius: 0.5rem;
+    border-left: 4px solid var(--border-color);
     background-color: #ffffff;
 }
 
@@ -106,74 +426,204 @@ main {
 
 .scam-alert-card.medium {
     border-left-color: var(--warning-color);
-    background-color: #fffbeb;
 }
 
 .scam-alert-card.high {
     border-left-color: var(--danger-color);
-    background-color: #fef2f2;
 }
 
-/* Application Status Badges */
-.status-applied {
-    background-color: #e0f2fe;
-    color: #0369a1;
+/* --- 8. Tables Design System --- */
+.table {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    margin-bottom: 0;
 }
 
-.status-under-review {
-    background-color: #fef3c7;
-    color: #b45309;
+.table thead th {
+    background-color: var(--bg-muted);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.625rem 0.875rem;
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
 }
 
-.status-selected {
-    background-color: #dcfce7;
-    color: #15803d;
+.table tbody td {
+    padding: 0.75rem 0.875rem;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
 }
 
-.status-rejected {
-    background-color: #fee2e2;
-    color: #b91c1c;
+.table tbody tr:hover {
+    background-color: #f8fafc;
 }
 
-.status-completed {
-    background-color: #f3e8ff;
-    color: #6b21a8;
+.table-responsive {
+    border-radius: var(--radius-md);
 }
 
-/* Buttons */
-.btn-primary {
+/* --- 9. Alerts Design System --- */
+.alert {
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    padding: 0.875rem 1.125rem;
+    border: 1px solid transparent;
+}
+
+.alert-success {
+    background-color: var(--success-subtle);
+    border-color: var(--success-border);
+    color: #065f46;
+}
+
+.alert-warning {
+    background-color: var(--warning-subtle);
+    border-color: var(--warning-border);
+    color: #92400e;
+}
+
+.alert-danger {
+    background-color: var(--danger-subtle);
+    border-color: var(--danger-border);
+    color: #991b1b;
+}
+
+.alert-info {
+    background-color: var(--info-subtle);
+    border-color: var(--info-border);
+    color: #075985;
+}
+
+/* --- 10. Empty States Helper --- */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: var(--text-muted);
+}
+
+.empty-state-icon {
+    font-size: 2.25rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+    display: inline-block;
+}
+
+.empty-state-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.empty-state-text {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    max-width: 420px;
+    margin: 0 auto 1rem auto;
+}
+
+/* --- 11. Hero Section (Clean Institutional Design) --- */
+.hero-section {
+    background-color: #0f172a;
+    color: #ffffff;
+    padding: 3.5rem 0;
+    border-bottom: 1px solid #1e293b;
+}
+
+.hero-section h1 {
+    color: #ffffff;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.hero-lead {
+    color: #94a3b8;
+    font-size: 1.05rem;
+    max-width: 680px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Hero Search Container */
+.hero-search-card {
+    background: #ffffff;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+}
+
+/* --- 12. Pagination --- */
+.pagination {
+    margin-bottom: 0;
+    gap: 0.25rem;
+}
+
+.page-link {
+    color: var(--text-secondary);
+    border-color: var(--border-color);
+    border-radius: var(--radius-sm) !important;
+    font-size: 0.8125rem;
+    padding: 0.375rem 0.75rem;
+    font-weight: 500;
+}
+
+.page-link:hover {
+    background-color: var(--bg-muted);
+    color: var(--primary-color);
+    border-color: var(--border-dark);
+}
+
+.page-item.active .page-link {
     background-color: var(--primary-color);
     border-color: var(--primary-color);
+    color: #ffffff;
 }
 
-.btn-primary:hover {
-    background-color: var(--primary-dark);
-    border-color: var(--primary-dark);
-}
-
-/* Quick Demo Login Pills */
-.demo-pill {
-    cursor: pointer;
-    transition: background-color 0.15s ease;
-}
-
-.demo-pill:hover {
-    background-color: #e2e8f0;
-}
-
-/* Footer */
+/* --- 13. Footer --- */
 footer {
     background-color: #0f172a;
     color: #94a3b8;
+    border-top: 1px solid #1e293b;
     margin-top: auto;
 }
 
+footer h5, footer h6 {
+    color: #f8fafc;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
 footer a {
-    color: #cbd5e1;
+    color: #94a3b8;
     text-decoration: none;
+    transition: color 0.15s ease;
 }
 
 footer a:hover {
     color: #ffffff;
     text-decoration: underline;
+}
+
+/* Utility truncate lines */
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Responsive tweaks */
+@media (max-width: 767.98px) {
+    .hero-section {
+        padding: 2.5rem 0;
+    }
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    .table thead th, .table tbody td {
+        padding: 0.5rem 0.625rem;
+    }
 }

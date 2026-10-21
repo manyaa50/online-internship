@@ -6,8 +6,8 @@
 <div class="container py-4">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 pb-2 border-bottom">
         <div>
-            <h3 class="fw-bold mb-1"><i class="bi bi-buildings-fill text-primary me-2"></i>Registered Companies</h3>
-            <p class="text-muted small mb-0">Total employers registered on the platform: {{ companies|length }}</p>
+            <h3 class="fw-bold mb-1"><i class="bi bi-buildings text-primary me-2"></i>Registered Companies</h3>
+            <p class="text-secondary small mb-0">Total employers registered on the platform: {{ companies|length }}</p>
         </div>
         <div>
             <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary btn-sm">
@@ -16,18 +16,18 @@
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm">
+    <div class="card border">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light text-muted small">
+            <table class="table align-middle mb-0">
+                <thead>
                     <tr>
-                        <th>Company</th>
-                        <th>Official Contact</th>
-                        <th>GST / Reg No.</th>
-                        <th>Verification</th>
-                        <th>Account Status</th>
-                        <th>Postings</th>
-                        <th class="text-end">User Action</th>
+                        <th scope="col">Company</th>
+                        <th scope="col">Official Contact</th>
+                        <th scope="col">GST / Reg No.</th>
+                        <th scope="col">Verification</th>
+                        <th scope="col">Account Status</th>
+                        <th scope="col">Postings</th>
+                        <th scope="col" class="text-end">User Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -81,7 +81,13 @@
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">No companies registered yet.</td>
+                            <td colspan="7" class="p-0">
+                                <div class="empty-state py-5">
+                                    <i class="bi bi-buildings empty-state-icon"></i>
+                                    <h6 class="empty-state-title">No Registered Employers</h6>
+                                    <p class="empty-state-text">No company accounts have been registered on the platform yet.</p>
+                                </div>
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>

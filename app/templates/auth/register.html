@@ -6,13 +6,13 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-9 col-lg-7">
-            <div class="card p-4 shadow-sm border-0">
+            <div class="card p-4 border shadow-sm">
                 <div class="text-center mb-4">
-                    <div class="bg-primary-subtle text-primary p-3 rounded-circle d-inline-block fs-3 mb-2">
+                    <div class="bg-primary-subtle text-primary p-3 rounded-circle d-inline-flex fs-3 mb-2">
                         <i class="bi bi-person-plus"></i>
                     </div>
-                    <h3 class="fw-bold">Create Free Account</h3>
-                    <p class="text-muted small">Join thousands of students and verified companies on SmartIntern</p>
+                    <h3 class="fw-bold mb-1">Create Account</h3>
+                    <p class="text-secondary small mb-0">Join students and verified employers on SmartIntern</p>
                 </div>
 
                 <form method="POST" action="{{ url_for('auth.register') }}">
@@ -20,17 +20,17 @@
 
                     <!-- Role Selector -->
                     <div class="mb-4">
-                        <label class="form-label small fw-semibold text-muted d-block text-center mb-2">I am registering as a:</label>
+                        <label class="form-label d-block text-center mb-2">Registering as:</label>
                         <div class="d-flex justify-content-center gap-3">
-                            <div class="form-check form-check-inline border p-2 px-3 rounded shadow-sm">
+                            <div class="form-check form-check-inline border p-2 px-3 rounded">
                                 <input class="form-check-input" type="radio" name="role" id="roleStudent" value="student" checked>
-                                <label class="form-check-label fw-bold" for="roleStudent">
+                                <label class="form-check-label fw-semibold" for="roleStudent">
                                     <i class="bi bi-mortarboard me-1 text-primary"></i> Student / Candidate
                                 </label>
                             </div>
-                            <div class="form-check form-check-inline border p-2 px-3 rounded shadow-sm">
+                            <div class="form-check form-check-inline border p-2 px-3 rounded">
                                 <input class="form-check-input" type="radio" name="role" id="roleCompany" value="company">
-                                <label class="form-check-label fw-bold" for="roleCompany">
+                                <label class="form-check-label fw-semibold" for="roleCompany">
                                     <i class="bi bi-building me-1 text-success"></i> Employer / Company
                                 </label>
                             </div>
@@ -40,41 +40,41 @@
                     <!-- Common Credentials -->
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label for="email" class="form-label small fw-semibold">Email Address <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" id="email" name="email" placeholder="you@domain.com" required>
+                            <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="you@domain.com" required autocomplete="email">
                         </div>
                         <div class="col-md-6">
-                            <label for="phone" class="form-label small fw-semibold">Phone Number <span class="text-danger">*</span></label>
-                            <input type="tel" class="form-control" id="phone" name="phone" placeholder="+91 98765 43210" required>
+                            <label for="phone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="phone" name="phone" placeholder="+91 98765 43210" required autocomplete="tel">
                         </div>
                     </div>
 
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
-                            <label for="password" class="form-label small fw-semibold">Password <span class="text-danger">*</span></label>
-                            <input type="password" class="form-control" id="password" name="password" placeholder="At least 6 characters" required>
+                            <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="At least 8 characters with digit" required autocomplete="new-password">
                         </div>
                         <div class="col-md-6">
-                            <label for="confirm_password" class="form-label small fw-semibold">Confirm Password <span class="text-danger">*</span></label>
-                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Re-enter password" required>
+                            <label for="confirm_password" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="Re-enter password" required autocomplete="new-password">
                         </div>
                     </div>
 
                     <!-- Student Specific Fields -->
                     <div id="studentRegistrationFields">
-                        <div class="p-3 bg-light rounded-3 mb-3 border">
+                        <div class="p-3 bg-light rounded mb-3 border">
                             <h6 class="fw-bold text-primary mb-3"><i class="bi bi-mortarboard me-1"></i> Student Information</h6>
                             <div class="mb-3">
-                                <label for="full_name" class="form-label small fw-semibold">Full Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="full_name" name="full_name" placeholder="Aarav Sharma">
+                                <label for="full_name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="full_name" name="full_name" placeholder="Aarav Sharma" autocomplete="name">
                             </div>
                             <div class="row g-3">
                                 <div class="col-md-7">
-                                    <label for="college_name" class="form-label small fw-semibold">College / University Name</label>
+                                    <label for="college_name" class="form-label">College / University Name</label>
                                     <input type="text" class="form-control" id="college_name" name="college_name" placeholder="e.g. ABC College of Computer Applications">
                                 </div>
                                 <div class="col-md-5">
-                                    <label for="degree" class="form-label small fw-semibold">Degree / Stream</label>
+                                    <label for="degree" class="form-label">Degree / Stream</label>
                                     <input type="text" class="form-control" id="degree" name="degree" placeholder="e.g. BCA, B.Tech, MCA">
                                 </div>
                             </div>
@@ -83,33 +83,33 @@
 
                     <!-- Company Specific Fields -->
                     <div id="companyRegistrationFields" class="d-none">
-                        <div class="p-3 bg-light rounded-3 mb-3 border">
+                        <div class="p-3 bg-light rounded mb-3 border">
                             <h6 class="fw-bold text-success mb-3"><i class="bi bi-building me-1"></i> Corporate Details (For Verification)</h6>
                             <div class="mb-3">
-                                <label for="company_name" class="form-label small fw-semibold">Company / Organization Name <span class="text-danger">*</span></label>
+                                <label for="company_name" class="form-label">Company / Organization Name <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="company_name" name="company_name" placeholder="e.g. TechNova Global Solutions">
                             </div>
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
-                                    <label for="website" class="form-label small fw-semibold">Official Website</label>
+                                    <label for="website" class="form-label">Official Website</label>
                                     <input type="url" class="form-control" id="website" name="website" placeholder="https://example.com">
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="registration_gst_number" class="form-label small fw-semibold">GSTIN / Corporate Reg No.</label>
+                                    <label for="registration_gst_number" class="form-label">GSTIN / Corporate Reg No.</label>
                                     <input type="text" class="form-control" id="registration_gst_number" name="registration_gst_number" placeholder="e.g. 27AAACT1234F1Z5">
                                 </div>
                             </div>
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label for="contact_person_name" class="form-label small fw-semibold">HR / Contact Person Name</label>
+                                    <label for="contact_person_name" class="form-label">HR / Contact Person Name</label>
                                     <input type="text" class="form-control" id="contact_person_name" name="contact_person_name" placeholder="e.g. Priya Nair">
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="official_email" class="form-label small fw-semibold">Official HR Email</label>
+                                    <label for="official_email" class="form-label">Official HR Email</label>
                                     <input type="email" class="form-control" id="official_email" name="official_email" placeholder="hr@company.com">
                                 </div>
                             </div>
-                            <div class="form-text mt-2 text-muted small">
+                            <div class="form-text mt-2 text-muted">
                                 <i class="bi bi-info-circle me-1"></i> New company profiles undergo administrative verification before internship listings become publicly active.
                             </div>
                         </div>
@@ -120,7 +120,7 @@
                     </button>
                 </form>
 
-                <div class="text-center mt-4">
+                <div class="text-center mt-4 pt-3 border-top">
                     <p class="small text-muted mb-0">
                         Already have an account? <a href="{{ url_for('auth.login') }}" class="text-primary fw-semibold">Sign in here</a>
                     </p>

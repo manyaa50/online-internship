@@ -6,19 +6,19 @@
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-md-9 col-lg-7">
-            <div class="card p-4 border-0 shadow-sm border-top border-danger border-4">
+            <div class="card p-4 border border-top border-danger border-4">
                 <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="bg-danger text-white p-3 rounded-circle fs-3 flex-shrink-0">
+                    <div class="bg-danger text-white p-2 rounded-circle fs-4 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
                         <i class="bi bi-flag-fill"></i>
                     </div>
                     <div>
                         <h4 class="fw-bold mb-0 text-danger">File a Scam or Fraud Report</h4>
-                        <small class="text-muted">Help safeguard fellow students by reporting illegal or suspicious recruitment practices.</small>
+                        <small class="text-secondary">Help safeguard fellow students by reporting illegal or suspicious recruitment practices.</small>
                     </div>
                 </div>
 
                 <div class="alert alert-warning small py-2 mb-4">
-                    <i class="bi bi-info-circle-fill me-1"></i> Reports are reviewed immediately by system administrators. False or fraudulent listings are promptly delisted and offending companies blocked.
+                    <i class="bi bi-info-circle-fill me-1"></i> Reports are reviewed immediately by system administrators. Fraudulent listings are promptly quarantined and offending accounts suspended.
                 </div>
 
                 <form method="POST" action="{{ url_for('reports.submit_report') }}">
@@ -32,20 +32,20 @@
 
                     <!-- Target Entity Summary -->
                     {% if internship or company %}
-                        <div class="p-3 bg-light rounded-3 mb-3 border small">
+                        <div class="p-3 bg-light rounded mb-3 border small">
                             <span class="text-muted text-uppercase fw-semibold d-block mb-1">Entity Being Reported:</span>
                             {% if internship %}
-                                <div class="fw-bold fs-6">{{ internship.title }}</div>
-                                <div class="text-muted">Offered by: {{ internship.company.company_name }}</div>
+                                <div class="fw-bold fs-6 text-dark">{{ internship.title }}</div>
+                                <div class="text-secondary">Offered by: {{ internship.company.company_name }}</div>
                             {% elif company %}
-                                <div class="fw-bold fs-6">{{ company.company_name }}</div>
-                                <div class="text-muted">Official Email: {{ company.official_email }}</div>
+                                <div class="fw-bold fs-6 text-dark">{{ company.company_name }}</div>
+                                <div class="text-secondary">Official Email: {{ company.official_email }}</div>
                             {% endif %}
                         </div>
                     {% endif %}
 
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Primary Reason for Report <span class="text-danger">*</span></label>
+                        <label class="form-label">Primary Reason for Report <span class="text-danger">*</span></label>
                         <select class="form-select" name="reason" required>
                             <option value="" disabled selected>Select Violation Category...</option>
                             <option value="Demanded upfront payment or registration fee">Demanded upfront payment or registration fee</option>
@@ -59,15 +59,15 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Detailed Description <span class="text-danger">*</span></label>
+                        <label class="form-label">Detailed Description <span class="text-danger">*</span></label>
                         <textarea class="form-control" name="description" rows="4" placeholder="Describe exactly what happened: did they mention a UPI ID, ask for registration money, or send suspicious links?" required></textarea>
-                        <div class="form-text small">Please be as specific as possible to assist administrator investigation.</div>
+                        <div class="form-text">Please be as specific as possible to assist administrator investigation.</div>
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label small fw-semibold">Evidence Link / Screenshot URL (Optional)</label>
+                        <label class="form-label">Evidence Link / Screenshot URL (Optional)</label>
                         <input type="url" class="form-control" name="evidence_link" placeholder="https://drive.google.com/... or image hosting link">
-                        <div class="form-text small">Optional link to screenshot of chat, email, or payment demand.</div>
+                        <div class="form-text">Optional link to screenshot of chat, email, or payment demand.</div>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center">

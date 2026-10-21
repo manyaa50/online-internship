@@ -17,16 +17,16 @@
         <!-- Main Job Details Column -->
         <div class="col-lg-8">
             <!-- Job Header Card -->
-            <div class="card p-4 border-0 shadow-sm mb-4">
+            <div class="card p-4 border mb-4">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-3 mb-3">
                     <div>
                         <span class="badge bg-light text-primary border mb-2">
                             <i class="bi bi-tag me-1"></i>{{ internship.category.name }}
                         </span>
                         <h2 class="fw-bold mb-1">{{ internship.title }}</h2>
-                        <h5 class="text-muted fw-normal mb-0">
+                        <h5 class="text-secondary fw-normal mb-0">
                             <i class="bi bi-building me-1 text-primary"></i>
-                            <strong>{{ internship.company.company_name }}</strong>
+                            <strong class="text-dark">{{ internship.company.company_name }}</strong>
                             {% if internship.company.is_verified %}
                                 <span class="badge bg-success-subtle text-success border border-success-subtle ms-1 small">
                                     <i class="bi bi-patch-check-fill me-1"></i>Verified Company
@@ -37,7 +37,7 @@
 
                     <!-- Scam Risk Score Pill -->
                     {% if internship.scam_check %}
-                        <div class="text-md-end">
+                        <div class="text-md-end flex-shrink-0">
                             {% if internship.scam_check.risk_level == 'Low' %}
                                 <span class="badge badge-risk-low fs-6 px-3 py-2">
                                     <i class="bi bi-shield-check me-1"></i>Safe ({{ internship.scam_check.risk_score }}/100)
@@ -56,7 +56,7 @@
                 </div>
 
                 <!-- Key Metrics Grid -->
-                <div class="row g-2 p-3 bg-light rounded-3 mb-3 small">
+                <div class="row g-2 p-3 bg-light rounded-3 mb-4 small border">
                     <div class="col-6 col-md-3">
                         <span class="text-muted d-block">Monthly Stipend</span>
                         <strong class="text-success fs-6">₹{{ "{:,.0f}".format(internship.stipend_amount) }}/mo</strong>
@@ -88,29 +88,29 @@
                 <!-- Description -->
                 <div class="mb-4">
                     <h5 class="fw-bold mb-2">Role Overview</h5>
-                    <p class="text-muted" style="white-space: pre-line;">{{ internship.description }}</p>
+                    <p class="text-secondary" style="white-space: pre-line;">{{ internship.description }}</p>
                 </div>
 
                 <!-- Responsibilities -->
                 {% if internship.responsibilities %}
                     <div class="mb-4">
                         <h5 class="fw-bold mb-2">Key Responsibilities</h5>
-                        <p class="text-muted" style="white-space: pre-line;">{{ internship.responsibilities }}</p>
+                        <p class="text-secondary" style="white-space: pre-line;">{{ internship.responsibilities }}</p>
                     </div>
                 {% endif %}
 
                 <!-- Eligibility -->
                 <div class="mb-4">
                     <h5 class="fw-bold mb-2">Eligibility Criteria</h5>
-                    <p class="text-muted" style="white-space: pre-line;">{{ internship.eligibility }}</p>
+                    <p class="text-secondary" style="white-space: pre-line;">{{ internship.eligibility }}</p>
                 </div>
 
                 <!-- Required Skills -->
-                <div class="mb-4">
+                <div class="mb-3">
                     <h5 class="fw-bold mb-2">Required Technical Skills</h5>
                     <div class="d-flex flex-wrap gap-2">
                         {% for skill in internship.get_skills_list() %}
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 fs-6">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
                                 {{ skill }}
                             </span>
                         {% endfor %}
@@ -118,14 +118,11 @@
                 </div>
             </div>
 
-            <!-- ============================================================= -->
-            <!-- CORE REQUIREMENT: SCAM ALERT, HEURISTIC AUDIT & REASONS       -->
-            <!-- (Prominently displayed before the Apply button)               -->
-            <!-- ============================================================= -->
-            <div class="card p-4 border-0 shadow-sm mb-4 scam-alert-card {% if internship.scam_check and internship.scam_check.risk_level == 'High' %}high{% elif internship.scam_check and internship.scam_check.risk_level == 'Medium' %}medium{% else %}low{% endif %}">
+            <!-- CORE REQUIREMENT: SCAM ALERT, HEURISTIC AUDIT & REASONS -->
+            <div class="card p-4 border mb-4 scam-alert-card {% if internship.scam_check and internship.scam_check.risk_level == 'High' %}high{% elif internship.scam_check and internship.scam_check.risk_level == 'Medium' %}medium{% else %}low{% endif %}">
                 <div class="d-flex align-items-center gap-3 mb-3">
                     {% if internship.scam_check and internship.scam_check.risk_level == 'High' %}
-                        <div class="bg-danger text-white p-3 rounded-circle fs-3 flex-shrink-0">
+                        <div class="bg-danger text-white p-2 rounded-circle fs-4 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
                             <i class="bi bi-shield-slash-fill"></i>
                         </div>
                         <div>
@@ -133,7 +130,7 @@
                             <small class="text-muted">This posting triggered multiple critical heuristic safety alerts.</small>
                         </div>
                     {% elif internship.scam_check and internship.scam_check.risk_level == 'Medium' %}
-                        <div class="bg-warning text-dark p-3 rounded-circle fs-3 flex-shrink-0">
+                        <div class="bg-warning text-dark p-2 rounded-circle fs-4 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
                             <i class="bi bi-exclamation-triangle-fill"></i>
                         </div>
                         <div>
@@ -141,7 +138,7 @@
                             <small class="text-muted">Please exercise due caution. Certain elements matched suspicious heuristics.</small>
                         </div>
                     {% else %}
-                        <div class="bg-success text-white p-3 rounded-circle fs-3 flex-shrink-0">
+                        <div class="bg-success text-white p-2 rounded-circle fs-4 flex-shrink-0 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
                             <i class="bi bi-shield-check"></i>
                         </div>
                         <div>
@@ -185,10 +182,8 @@
                 </div>
             </div>
 
-            <!-- ============================================================= -->
-            <!-- APPLICATION & REPORT ACTION SECTION                           -->
-            <!-- ============================================================= -->
-            <div class="card p-4 border-0 shadow-sm mb-4">
+            <!-- APPLICATION & REPORT ACTION SECTION -->
+            <div class="card p-4 border mb-4">
                 {% if existing_application %}
                     <!-- Already Applied Status Banner -->
                     <div class="alert alert-info d-flex align-items-center justify-content-between gap-3 mb-0" role="alert">
@@ -220,7 +215,7 @@
                     {% endif %}
                     <!-- Active Student Apply Button -->
                     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
-                        <button type="button" class="btn btn-primary btn-lg px-5 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#applyInternshipModal">
+                        <button type="button" class="btn btn-primary px-4 fw-semibold" data-bs-toggle="modal" data-bs-target="#applyInternshipModal">
                             <i class="bi bi-send-fill me-2"></i>Apply for this Internship
                         </button>
                         <a href="{{ url_for('reports.submit_report', internship_id=internship.id) }}" class="btn btn-outline-danger btn-sm">
@@ -257,7 +252,7 @@
         <!-- Right Column: Employer Card & Quick Safety Check -->
         <div class="col-lg-4">
             <!-- Employer Profile Card -->
-            <div class="card p-4 border-0 shadow-sm mb-4">
+            <div class="card p-4 border mb-4">
                 <h5 class="fw-bold mb-3"><i class="bi bi-building text-primary me-2"></i>About the Employer</h5>
                 <h6 class="fw-bold text-dark mb-1">{{ internship.company.company_name }}</h6>
                 <small class="text-muted d-block mb-3">{{ internship.company.city or 'India' }}, {{ internship.company.country }}</small>
@@ -266,7 +261,7 @@
                     <p class="small text-muted mb-3">{{ internship.company.description }}</p>
                 {% endif %}
 
-                <div class="small text-muted d-flex flex-column gap-2 pt-2 border-top">
+                <div class="small text-secondary d-flex flex-column gap-2 pt-2 border-top">
                     {% if internship.company.website %}
                         <div>
                             <i class="bi bi-globe me-2 text-primary"></i>
@@ -291,7 +286,7 @@
             </div>
 
             <!-- Fraud Alert Action Box -->
-            <div class="card p-3 border-0 shadow-sm bg-danger-subtle text-danger-emphasis">
+            <div class="card p-3 border border-danger-subtle bg-danger-subtle text-danger-emphasis">
                 <h6 class="fw-bold mb-1"><i class="bi bi-shield-exclamation me-1"></i>Report Suspicious Activity</h6>
                 <p class="small mb-2">Did this recruiter ask for UPI transfer, registration charges, or redirect to Telegram?</p>
                 <a href="{{ url_for('reports.submit_report', internship_id=internship.id) }}" class="btn btn-danger btn-sm fw-semibold w-100">
@@ -308,7 +303,7 @@
 {% if current_user.is_authenticated and current_user.is_student %}
     <div class="modal fade" id="applyInternshipModal" tabindex="-1" aria-labelledby="applyModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+            <div class="modal-content border">
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold" id="applyModalLabel">
                         <i class="bi bi-send-fill text-primary me-2"></i>Apply for {{ internship.title }}
@@ -377,10 +372,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary fw-semibold px-4">
-                            Submit Application
-                        </button>
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary btn-sm px-3 fw-semibold">Submit Application</button>
                     </div>
                 </form>
             </div>

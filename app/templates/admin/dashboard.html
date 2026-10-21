@@ -8,7 +8,7 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 pb-2 border-bottom">
         <div>
             <h2 class="fw-bold mb-1"><i class="bi bi-shield-lock-fill text-danger me-2"></i>Platform Administration Control</h2>
-            <p class="text-muted small mb-0">Security oversight, employer verifications, heuristic scam screening, and fraud mitigation</p>
+            <p class="text-secondary small mb-0">Security oversight, employer verifications, heuristic scam screening, and fraud mitigation</p>
         </div>
         <div class="d-flex gap-2">
             <a href="{{ url_for('admin.flagged_internships') }}" class="btn btn-danger btn-sm">
@@ -23,50 +23,50 @@
     <!-- 6 Statistics Cards -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-4 col-lg-2">
-            <div class="card p-3 border-0 bg-primary-subtle text-primary h-100">
-                <span class="small fw-semibold text-uppercase">Students</span>
-                <h3 class="fw-bold mb-0 mt-1">{{ total_students }}</h3>
-                <a href="{{ url_for('admin.students') }}" class="small text-primary text-decoration-none mt-2">Manage &rarr;</a>
+            <div class="stat-card accent-primary h-100">
+                <div class="stat-label">Students</div>
+                <div class="stat-value">{{ total_students }}</div>
+                <a href="{{ url_for('admin.students') }}" class="small text-primary text-decoration-none">Manage &rarr;</a>
             </div>
         </div>
 
         <div class="col-6 col-md-4 col-lg-2">
-            <div class="card p-3 border-0 bg-info-subtle text-info-emphasis h-100">
-                <span class="small fw-semibold text-uppercase">Companies</span>
-                <h3 class="fw-bold mb-0 mt-1">{{ total_companies }}</h3>
-                <a href="{{ url_for('admin.companies') }}" class="small text-info-emphasis text-decoration-none mt-2">Manage &rarr;</a>
+            <div class="stat-card accent-info h-100">
+                <div class="stat-label">Companies</div>
+                <div class="stat-value">{{ total_companies }}</div>
+                <a href="{{ url_for('admin.companies') }}" class="small text-info text-decoration-none">Manage &rarr;</a>
             </div>
         </div>
 
         <div class="col-6 col-md-4 col-lg-2">
-            <div class="card p-3 border-0 bg-warning-subtle text-warning-emphasis h-100">
-                <span class="small fw-semibold text-uppercase">Pending Verif.</span>
-                <h3 class="fw-bold mb-0 mt-1">{{ pending_verifications }}</h3>
-                <a href="{{ url_for('admin.verifications') }}" class="small text-warning-emphasis text-decoration-none mt-2">Review &rarr;</a>
+            <div class="stat-card accent-warning h-100">
+                <div class="stat-label">Pending Verif.</div>
+                <div class="stat-value">{{ pending_verifications }}</div>
+                <a href="{{ url_for('admin.verifications') }}" class="small text-warning text-decoration-none">Review &rarr;</a>
             </div>
         </div>
 
         <div class="col-6 col-md-4 col-lg-2">
-            <div class="card p-3 border-0 bg-success-subtle text-success h-100">
-                <span class="small fw-semibold text-uppercase">Total Postings</span>
-                <h3 class="fw-bold mb-0 mt-1">{{ total_postings }}</h3>
-                <span class="small text-muted mt-2">Database</span>
+            <div class="stat-card accent-success h-100">
+                <div class="stat-label">Total Postings</div>
+                <div class="stat-value">{{ total_postings }}</div>
+                <span class="small text-muted">All Listings</span>
             </div>
         </div>
 
         <div class="col-6 col-md-4 col-lg-2">
-            <div class="card p-3 border-0 bg-danger-subtle text-danger h-100">
-                <span class="small fw-semibold text-uppercase">Flagged Scams</span>
-                <h3 class="fw-bold mb-0 mt-1">{{ flagged_postings }}</h3>
-                <a href="{{ url_for('admin.flagged_internships') }}" class="small text-danger text-decoration-none mt-2">Audit &rarr;</a>
+            <div class="stat-card accent-danger h-100">
+                <div class="stat-label">Flagged Scams</div>
+                <div class="stat-value">{{ flagged_postings }}</div>
+                <a href="{{ url_for('admin.flagged_internships') }}" class="small text-danger text-decoration-none">Audit &rarr;</a>
             </div>
         </div>
 
         <div class="col-6 col-md-4 col-lg-2">
-            <div class="card p-3 border-0 bg-secondary-subtle text-secondary-emphasis h-100">
-                <span class="small fw-semibold text-uppercase">Open Reports</span>
-                <h3 class="fw-bold mb-0 mt-1">{{ open_reports }}</h3>
-                <a href="{{ url_for('admin.reports') }}" class="small text-secondary-emphasis text-decoration-none mt-2">Inspect &rarr;</a>
+            <div class="stat-card accent-dark h-100">
+                <div class="stat-label">Open Reports</div>
+                <div class="stat-value">{{ open_reports }}</div>
+                <a href="{{ url_for('admin.reports') }}" class="small text-secondary text-decoration-none">Inspect &rarr;</a>
             </div>
         </div>
     </div>
@@ -75,8 +75,8 @@
     <div class="row g-4">
         <!-- Quarantined High-Risk Postings Card -->
         <div class="col-lg-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <div class="card border mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h6 class="fw-bold mb-0 text-danger">
                         <i class="bi bi-shield-slash-fill me-2"></i>High-Risk Flagged Postings
                     </h6>
@@ -86,10 +86,10 @@
                     {% for item in recent_flagged %}
                         <div class="list-group-item p-3">
                             <div class="d-flex justify-content-between align-items-start mb-1">
-                                <h6 class="fw-bold mb-0">{{ item.title }}</h6>
+                                <h6 class="fw-bold mb-0 text-dark">{{ item.title }}</h6>
                                 <span class="badge badge-risk-high">Risk: {{ item.scam_check.risk_score }}/100</span>
                             </div>
-                            <small class="text-muted d-block mb-2">Company: <strong>{{ item.company.company_name }}</strong> &bull; Posted {{ item.created_at.strftime('%b %d') }}</small>
+                            <small class="text-muted d-block mb-2">Company: <strong>{{ item.company.company_name }}</strong> &bull; Posted {{ item.created_at.strftime('%b %d, %Y') }}</small>
                             <div class="p-2 bg-light rounded small text-danger border-start border-danger border-3 mb-2">
                                 {{ item.scam_check.summary_notes }}
                             </div>
@@ -98,9 +98,10 @@
                             </div>
                         </div>
                     {% else %}
-                        <div class="text-center py-4 text-muted small">
-                            <i class="bi bi-check2-circle text-success fs-3 d-block mb-1"></i>
-                            No high-risk flagged listings awaiting review.
+                        <div class="empty-state py-4">
+                            <i class="bi bi-check2-circle text-success empty-state-icon"></i>
+                            <h6 class="empty-state-title">No High-Risk Flagged Postings</h6>
+                            <p class="empty-state-text">No active postings currently exceed the automated heuristic quarantine threshold.</p>
                         </div>
                     {% endfor %}
                 </div>
@@ -109,8 +110,8 @@
 
         <!-- Pending Company Verifications Card -->
         <div class="col-lg-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <div class="card border mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h6 class="fw-bold mb-0 text-primary">
                         <i class="bi bi-patch-question-fill me-2"></i>Pending Company Verifications
                     </h6>
@@ -120,8 +121,8 @@
                     {% for comp in recent_verifications %}
                         <div class="list-group-item p-3">
                             <div class="d-flex justify-content-between align-items-start mb-1">
-                                <h6 class="fw-bold mb-0">{{ comp.company_name }}</h6>
-                                <span class="badge bg-warning text-dark">Pending</span>
+                                <h6 class="fw-bold mb-0 text-dark">{{ comp.company_name }}</h6>
+                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Pending</span>
                             </div>
                             <small class="text-muted d-block mb-1">
                                 <strong>GST/CIN:</strong> {{ comp.registration_gst_number or 'Not provided' }} &bull;
@@ -133,9 +134,10 @@
                             <a href="{{ url_for('admin.verifications') }}" class="btn btn-sm btn-outline-primary py-0">Verify Employer</a>
                         </div>
                     {% else %}
-                        <div class="text-center py-4 text-muted small">
-                            <i class="bi bi-check2-all text-success fs-3 d-block mb-1"></i>
-                            All registered companies have been reviewed.
+                        <div class="empty-state py-4">
+                            <i class="bi bi-check2-all text-success empty-state-icon"></i>
+                            <h6 class="empty-state-title">Verification Queue Clean</h6>
+                            <p class="empty-state-text">All registered employer organizations have been audited and reviewed.</p>
                         </div>
                     {% endfor %}
                 </div>

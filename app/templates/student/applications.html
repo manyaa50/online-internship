@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}My Internship Applications - SmartIntern{% endblock %}
+{% block title %}My Applications - SmartIntern{% endblock %}
 
 {% block content %}
 <div class="container py-4">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 pb-2 border-bottom">
         <div>
             <h3 class="fw-bold mb-1"><i class="bi bi-send text-primary me-2"></i>My Internship Applications</h3>
-            <p class="text-muted small mb-0">Track live progress, interviewer feedback, and offer status</p>
+            <p class="text-secondary small mb-0">Track application status, recruiter feedback, and active selections</p>
         </div>
         <div>
             <a href="{{ url_for('internships.list_internships') }}" class="btn btn-outline-primary btn-sm">
@@ -16,58 +16,58 @@
         </div>
     </div>
 
-    <!-- Status Filter Pills -->
-    <div class="d-flex flex-wrap gap-2 mb-4">
-        <a href="{{ url_for('student.applications') }}" class="btn btn-sm {% if not active_status %}btn-dark{% else %}btn-outline-secondary{% endif %} rounded-pill">
+    <!-- Status Filter Navigation -->
+    <div class="d-flex flex-wrap gap-2 mb-4" role="navigation" aria-label="Application status filters">
+        <a href="{{ url_for('student.applications') }}" class="btn btn-sm {% if not active_status %}btn-primary{% else %}btn-outline-secondary{% endif %}">
             All Applications ({{ applications|length if not active_status else '•' }})
         </a>
-        <a href="{{ url_for('student.applications', status='Applied') }}" class="btn btn-sm {% if active_status == 'Applied' %}btn-primary{% else %}btn-outline-secondary{% endif %} rounded-pill">
+        <a href="{{ url_for('student.applications', status='Applied') }}" class="btn btn-sm {% if active_status == 'Applied' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
             Applied
         </a>
-        <a href="{{ url_for('student.applications', status='Under Review') }}" class="btn btn-sm {% if active_status == 'Under Review' %}btn-warning text-dark{% else %}btn-outline-secondary{% endif %} rounded-pill">
+        <a href="{{ url_for('student.applications', status='Under Review') }}" class="btn btn-sm {% if active_status == 'Under Review' %}btn-warning text-dark{% else %}btn-outline-secondary{% endif %}">
             Under Review
         </a>
-        <a href="{{ url_for('student.applications', status='Selected') }}" class="btn btn-sm {% if active_status == 'Selected' %}btn-success{% else %}btn-outline-secondary{% endif %} rounded-pill">
+        <a href="{{ url_for('student.applications', status='Selected') }}" class="btn btn-sm {% if active_status == 'Selected' %}btn-success{% else %}btn-outline-secondary{% endif %}">
             Selected / Offered
         </a>
-        <a href="{{ url_for('student.applications', status='Rejected') }}" class="btn btn-sm {% if active_status == 'Rejected' %}btn-danger{% else %}btn-outline-secondary{% endif %} rounded-pill">
-            Rejected
+        <a href="{{ url_for('student.applications', status='Rejected') }}" class="btn btn-sm {% if active_status == 'Rejected' %}btn-danger{% else %}btn-outline-secondary{% endif %}">
+            Not Selected
         </a>
     </div>
 
     <!-- Applications Table -->
-    <div class="card border-0 shadow-sm">
+    <div class="card border">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light text-muted small">
+            <table class="table align-middle mb-0">
+                <thead>
                     <tr>
-                        <th>Position / Role</th>
-                        <th>Company</th>
-                        <th>Location & Stipend</th>
-                        <th>Applied On</th>
-                        <th>Status</th>
-                        <th>Feedback / Note</th>
-                        <th class="text-end">Actions</th>
+                        <th scope="col">Position / Role</th>
+                        <th scope="col">Company</th>
+                        <th scope="col">Location & Stipend</th>
+                        <th scope="col">Applied On</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Feedback / Note</th>
+                        <th scope="col" class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for app in applications %}
                         <tr>
                             <td>
-                                <a href="{{ url_for('internships.detail', internship_id=app.internship.id) }}" class="fw-bold text-dark text-decoration-none">
+                                <a href="{{ url_for('internships.detail', internship_id=app.internship.id) }}" class="fw-semibold text-dark text-decoration-none">
                                     {{ app.internship.title }}
                                 </a>
                                 <br>
-                                <span class="badge bg-light text-muted border small">{{ app.internship.category.name }}</span>
+                                <span class="badge bg-light text-secondary border small">{{ app.internship.category.name }}</span>
                             </td>
                             <td>
-                                <span class="fw-semibold">{{ app.internship.company.company_name }}</span>
+                                <span class="fw-medium">{{ app.internship.company.company_name }}</span>
                                 {% if app.internship.company.is_verified %}
                                     <i class="bi bi-patch-check-fill text-primary" title="Verified Company"></i>
                                 {% endif %}
                             </td>
                             <td>
-                                <small class="d-block text-muted"><i class="bi bi-geo-alt me-1"></i>{{ app.internship.location_type|capitalize }}</small>
+                                <small class="d-block text-secondary"><i class="bi bi-geo-alt me-1"></i>{{ app.internship.location_type|capitalize }}</small>
                                 <small class="text-success fw-bold">₹{{ "{:,.0f}".format(app.internship.stipend_amount) }}/mo</small>
                             </td>
                             <td>
@@ -75,15 +75,15 @@
                             </td>
                             <td>
                                 {% if app.status == 'Applied' %}
-                                    <span class="badge status-applied px-2 py-1">Applied</span>
+                                    <span class="badge status-applied">Applied</span>
                                 {% elif app.status == 'Under Review' %}
-                                    <span class="badge status-under-review px-2 py-1"><i class="bi bi-clock me-1"></i>Under Review</span>
+                                    <span class="badge status-under-review"><i class="bi bi-clock me-1"></i>Under Review</span>
                                 {% elif app.status == 'Selected' %}
-                                    <span class="badge status-selected px-2 py-1"><i class="bi bi-award-fill me-1"></i>Selected</span>
+                                    <span class="badge status-selected"><i class="bi bi-check-circle me-1"></i>Selected</span>
                                 {% elif app.status == 'Rejected' %}
-                                    <span class="badge status-rejected px-2 py-1">Rejected</span>
+                                    <span class="badge status-rejected">Rejected</span>
                                 {% elif app.status == 'Completed' %}
-                                    <span class="badge status-completed px-2 py-1">Completed</span>
+                                    <span class="badge status-completed">Completed</span>
                                 {% endif %}
                             </td>
                             <td style="max-width: 250px;">
@@ -92,25 +92,32 @@
                                         <i class="bi bi-chat-left-quote text-primary me-1"></i>"{{ app.company_feedback }}"
                                     </div>
                                 {% else %}
-                                    <small class="text-muted fst-italic">No feedback shared yet</small>
+                                    <small class="text-muted fst-italic">Pending recruiter review</small>
                                 {% endif %}
                             </td>
                             <td class="text-end">
-                                <div class="d-flex justify-content-end gap-1">
-                                    <a href="{{ url_for('internships.detail', internship_id=app.internship.id) }}" class="btn btn-sm btn-outline-primary" title="View Posting">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a href="{{ url_for('student.download_resume', resume_id=app.resume_id) }}" class="btn btn-sm btn-outline-secondary" title="View Submitted Resume">
-                                        <i class="bi bi-file-earmark-pdf"></i>
-                                    </a>
-                                </div>
+                                <a href="{{ url_for('internships.detail', internship_id=app.internship.id) }}" class="btn btn-sm btn-outline-secondary" title="View Posting">
+                                    View Post
+                                </a>
                             </td>
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="7" class="text-center py-5 text-muted">
-                                <i class="bi bi-folder2-open fs-1 text-secondary d-block mb-2"></i>
-                                No applications match the selected filter.
+                            <td colspan="7" class="p-0">
+                                <div class="empty-state py-5">
+                                    <i class="bi bi-inbox empty-state-icon"></i>
+                                    <h6 class="empty-state-title">No Applications Found</h6>
+                                    <p class="empty-state-text">
+                                        {% if active_status %}
+                                            No applications currently match the "{{ active_status }}" filter.
+                                        {% else %}
+                                            You haven't submitted any internship applications yet.
+                                        {% endif %}
+                                    </p>
+                                    <a href="{{ url_for('internships.list_internships') }}" class="btn btn-sm btn-primary">
+                                        Browse Opportunities
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     {% endfor %}

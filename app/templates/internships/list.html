@@ -7,40 +7,40 @@
     <!-- Breadcrumb / Header -->
     <div class="mb-4 pb-2 border-bottom">
         <h2 class="fw-bold mb-1"><i class="bi bi-search text-primary me-2"></i>Explore Verified Internships</h2>
-        <p class="text-muted small mb-0">Browse heuristic-screened internship listings protected by our automated scam detection engine</p>
+        <p class="text-secondary small mb-0">Browse heuristic-screened internship listings protected by our automated scam detection engine</p>
     </div>
 
     <div class="row g-4">
         <!-- Filter Sidebar -->
         <div class="col-lg-3">
-            <div class="card p-3 border-0 shadow-sm sticky-top" style="top: 80px; z-index: 10;">
+            <div class="card p-3 border sticky-top" style="top: 80px; z-index: 10;">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="fw-bold mb-0"><i class="bi bi-funnel text-primary me-1"></i>Filters</h6>
+                    <h6 class="fw-bold mb-0"><i class="bi bi-funnel text-primary me-1"></i>Search Filters</h6>
                     <a href="{{ url_for('internships.list_internships') }}" class="small text-muted text-decoration-none">Reset</a>
                 </div>
 
                 <form method="GET" action="{{ url_for('internships.list_internships') }}">
                     <!-- Keyword Search -->
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Keywords</label>
+                        <label class="form-label small">Keywords</label>
                         <input type="text" class="form-control form-control-sm" name="keyword" value="{{ keyword or '' }}" placeholder="Title, company, etc...">
                     </div>
 
                     <!-- Skills Required Search -->
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Required Skills</label>
+                        <label class="form-label small">Required Skills</label>
                         <input type="text" class="form-control form-control-sm" name="skills" value="{{ skills or '' }}" placeholder="e.g. Python, React, SQL">
                     </div>
 
                     <!-- Eligibility Search -->
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Eligibility</label>
+                        <label class="form-label small">Eligibility</label>
                         <input type="text" class="form-control form-control-sm" name="eligibility" value="{{ eligibility or '' }}" placeholder="e.g. BCA, B.Tech, Final Year">
                     </div>
 
                     <!-- Category -->
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Domain / Category</label>
+                        <label class="form-label small">Domain / Category</label>
                         <select class="form-select form-select-sm" name="category">
                             <option value="">All Categories</option>
                             {% for cat in categories %}
@@ -51,20 +51,20 @@
 
                     <!-- Duration Range in Weeks -->
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Duration (Weeks)</label>
+                        <label class="form-label small">Duration (Weeks)</label>
                         <div class="row g-2">
                             <div class="col-6">
-                                <input type="number" min="0" step="1" class="form-control form-control-sm" name="min_duration" value="{{ min_duration or '' }}" placeholder="Min wks">
+                                <input type="number" min="0" step="1" class="form-control form-control-sm" name="min_duration" value="{{ min_duration or '' }}" placeholder="Min wks" aria-label="Minimum duration in weeks">
                             </div>
                             <div class="col-6">
-                                <input type="number" min="0" step="1" class="form-control form-control-sm" name="max_duration" value="{{ max_duration or '' }}" placeholder="Max wks">
+                                <input type="number" min="0" step="1" class="form-control form-control-sm" name="max_duration" value="{{ max_duration or '' }}" placeholder="Max wks" aria-label="Maximum duration in weeks">
                             </div>
                         </div>
                     </div>
 
                     <!-- Location Mode -->
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Workplace Mode</label>
+                        <label class="form-label small">Workplace Mode</label>
                         <select class="form-select form-select-sm" name="location_type">
                             <option value="">All Modes</option>
                             <option value="remote" {% if selected_location_type == 'remote' %}selected{% endif %}>Remote (Work From Home)</option>
@@ -75,13 +75,13 @@
 
                     <!-- City -->
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">City</label>
+                        <label class="form-label small">City</label>
                         <input type="text" class="form-control form-control-sm" name="city" value="{{ selected_city or '' }}" placeholder="e.g. Bengaluru, Pune">
                     </div>
 
                     <!-- Stipend Type -->
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Stipend Type</label>
+                        <label class="form-label small">Stipend Type</label>
                         <select class="form-select form-select-sm" name="stipend_type">
                             <option value="">Any Stipend</option>
                             <option value="paid" {% if selected_stipend_type == 'paid' %}selected{% endif %}>Paid Internships</option>
@@ -91,7 +91,7 @@
 
                     <!-- Min Stipend -->
                     <div class="mb-4">
-                        <label class="form-label small fw-semibold">Min Monthly Stipend (₹)</label>
+                        <label class="form-label small">Min Monthly Stipend (₹)</label>
                         <input type="number" step="1000" class="form-control form-control-sm" name="min_stipend" value="{{ min_stipend or '' }}" placeholder="e.g. 10000">
                     </div>
 
@@ -105,16 +105,16 @@
         <!-- Postings Grid Column -->
         <div class="col-lg-9">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="small text-muted">Showing <strong>{{ pagination.total }}</strong> verified postings</span>
+                <span class="small text-secondary">Showing <strong>{{ pagination.total }}</strong> verified postings</span>
                 <span class="badge bg-success-subtle text-success border border-success-subtle">
                     <i class="bi bi-shield-check me-1"></i>Scam Guard Protected
                 </span>
             </div>
 
-            <div class="row g-4">
+            <div class="row g-3">
                 {% for item in internships %}
                     <div class="col-md-6">
-                        <div class="card h-100 p-3 card-hover border position-relative shadow-sm">
+                        <div class="card h-100 p-4 card-hover border position-relative d-flex flex-column">
                             <div class="d-flex justify-content-between align-items-start mb-2">
                                 <span class="badge bg-light text-secondary border small">{{ item.category.name }}</span>
                                 {% if item.scam_check %}
@@ -143,7 +143,7 @@
                                 {% endif %}
                             </p>
 
-                            <p class="text-muted small mb-3" style="min-height: 40px;">
+                            <p class="text-muted small mb-3 text-truncate-2" style="min-height: 40px;">
                                 {{ item.description[:110] }}...
                             </p>
 
@@ -159,7 +159,7 @@
                                 </span>
                             </div>
 
-                            <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
+                            <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
                                 <small class="text-muted">Deadline: {{ item.application_deadline.strftime('%b %d, %Y') }}</small>
                                 <a href="{{ url_for('internships.detail', internship_id=item.id) }}" class="btn btn-sm btn-primary">
                                     View & Apply
@@ -168,18 +168,24 @@
                         </div>
                     </div>
                 {% else %}
-                    <div class="col-12 text-center py-5 text-muted">
-                        <i class="bi bi-search fs-1 text-secondary d-block mb-2"></i>
-                        No internships found matching your filter criteria.
-                        <br>
-                        <a href="{{ url_for('internships.list_internships') }}" class="btn btn-sm btn-outline-primary mt-2">Clear Filters</a>
+                    <div class="col-12">
+                        <div class="empty-state py-5 card border">
+                            <i class="bi bi-search empty-state-icon"></i>
+                            <h6 class="empty-state-title">No Internships Found</h6>
+                            <p class="empty-state-text">No active postings match your current filter criteria. Try adjusting keywords or domain.</p>
+                            <div>
+                                <a href="{{ url_for('internships.list_internships') }}" class="btn btn-sm btn-outline-primary">
+                                    Clear All Filters
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 {% endfor %}
             </div>
 
             <!-- Pagination -->
             {% if pagination.pages > 1 %}
-                <nav class="mt-4" aria-label="Page navigation">
+                <nav class="mt-4" aria-label="Internship pagination">
                     <ul class="pagination justify-content-center">
                         {% if pagination.has_prev %}
                             <li class="page-item">

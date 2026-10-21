@@ -8,9 +8,9 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 pb-2 border-bottom">
         <div>
             <h2 class="fw-bold mb-1">{{ company.company_name }}</h2>
-            <p class="text-muted small mb-0">
-                <i class="bi bi-geo-alt me-1"></i>{{ company.city or 'Location unset' }}, {{ company.country }} &bull;
-                <i class="bi bi-envelope me-1"></i>{{ company.official_email }}
+            <p class="text-secondary small mb-0">
+                <i class="bi bi-geo-alt me-1 text-primary"></i>{{ company.city or 'Location unset' }}, {{ company.country }} &bull;
+                <i class="bi bi-envelope me-1 text-primary"></i>{{ company.official_email }}
             </p>
         </div>
         <div class="d-flex gap-2">
@@ -43,31 +43,31 @@
 
     <!-- Verification Status Banner -->
     {% if company.verification_status == 'pending' %}
-        <div class="alert alert-warning border-warning d-flex align-items-center gap-3 mb-4 shadow-sm" role="alert">
-            <i class="bi bi-hourglass-split fs-2 flex-shrink-0 text-warning"></i>
+        <div class="alert alert-warning d-flex align-items-center gap-3 mb-4 shadow-sm" role="alert">
+            <i class="bi bi-hourglass-split fs-3 flex-shrink-0 text-warning"></i>
             <div>
-                <h5 class="alert-heading fw-bold mb-1">Company Verification Pending</h5>
+                <h6 class="alert-heading fw-bold mb-1">Company Verification Under Review</h6>
                 <p class="mb-0 small">
-                    Your profile has been submitted and is currently being audited by platform administrators. Once approved, your ability to post internships and connect with verified candidates will be instantly unlocked.
+                    Your profile and corporate registration details have been submitted to administrators for verification. Once approved, listing creation will be unlocked.
                 </p>
             </div>
         </div>
     {% elif company.verification_status == 'rejected' %}
-        <div class="alert alert-danger border-danger d-flex align-items-center gap-3 mb-4 shadow-sm" role="alert">
-            <i class="bi bi-x-octagon-fill fs-2 flex-shrink-0 text-danger"></i>
+        <div class="alert alert-danger d-flex align-items-center gap-3 mb-4 shadow-sm" role="alert">
+            <i class="bi bi-x-octagon-fill fs-3 flex-shrink-0 text-danger"></i>
             <div>
-                <h5 class="alert-heading fw-bold mb-1">Verification Rejected</h5>
+                <h6 class="alert-heading fw-bold mb-1">Company Verification Rejected</h6>
                 <p class="mb-0 small">
-                    Your corporate registration could not be validated. Please check feedback in your profile and resubmit with valid GST/official credentials.
+                    Your corporate registration could not be verified. Please review the administrator feedback in your profile and update your credentials.
                 </p>
             </div>
         </div>
     {% else %}
-        <div class="alert alert-success border-success-subtle bg-success-subtle d-flex align-items-center gap-3 mb-4 shadow-sm" role="alert">
-            <i class="bi bi-patch-check-fill fs-2 flex-shrink-0 text-success"></i>
+        <div class="alert alert-success d-flex align-items-center gap-3 mb-4 shadow-sm" role="alert">
+            <i class="bi bi-patch-check-fill fs-3 flex-shrink-0 text-success"></i>
             <div>
-                <h6 class="alert-heading fw-bold mb-0 text-success">Verified Employer Status: Active</h6>
-                <small class="text-success-emphasis">All listings posted through your organization receive priority verified badges.</small>
+                <h6 class="alert-heading fw-bold mb-0">Verified Employer Status: Active</h6>
+                <small class="text-success-emphasis">All internship opportunities published by your organization display verified authenticity credentials.</small>
             </div>
         </div>
     {% endif %}
@@ -75,38 +75,84 @@
     <!-- Stat Counters -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-md-3">
-            <div class="card p-3 border-0 bg-primary-subtle text-primary h-100">
-                <span class="small fw-semibold text-uppercase">Total Postings</span>
-                <h2 class="fw-bold mb-0 mt-2">{{ total_postings }}</h2>
+            <div class="stat-card accent-primary h-100">
+                <div class="stat-label">Total Postings</div>
+                <div class="stat-value">{{ total_postings }}</div>
+                <div class="stat-meta">Published opportunities</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card p-3 border-0 bg-success-subtle text-success h-100">
-                <span class="small fw-semibold text-uppercase">Active Postings</span>
-                <h2 class="fw-bold mb-0 mt-2">{{ active_postings }}</h2>
+            <div class="stat-card accent-success h-100">
+                <div class="stat-label">Active Postings</div>
+                <div class="stat-value">{{ active_postings }}</div>
+                <div class="stat-meta">Currently accepting candidates</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card p-3 border-0 bg-info-subtle text-info-emphasis h-100">
-                <span class="small fw-semibold text-uppercase">Total Applicants</span>
-                <h2 class="fw-bold mb-0 mt-2">{{ total_applications }}</h2>
+            <div class="stat-card accent-info h-100">
+                <div class="stat-label">Total Applicants</div>
+                <div class="stat-value">{{ total_applications }}</div>
+                <div class="stat-meta">Lifetime submissions</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card p-3 border-0 bg-warning-subtle text-warning-emphasis h-100">
-                <span class="small fw-semibold text-uppercase">Pending Review</span>
-                <h2 class="fw-bold mb-0 mt-2">{{ pending_applications }}</h2>
+            <div class="stat-card accent-warning h-100">
+                <div class="stat-label">Pending Review</div>
+                <div class="stat-value">{{ pending_applications }}</div>
+                <div class="stat-meta">Awaiting your response</div>
             </div>
         </div>
     </div>
 
+    <!-- Quick Navigation & Recent Postings -->
     <div class="row g-4">
-        <!-- Recent Postings -->
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="fw-bold mb-0"><i class="bi bi-briefcase me-2 text-primary"></i>Your Internship Postings</h6>
-                    <a href="{{ url_for('company.manage_internships') }}" class="btn btn-sm btn-link text-decoration-none">Manage All &rarr;</a>
+        <!-- Quick Action Shortcuts -->
+        <div class="col-lg-4">
+            <div class="card border mb-4">
+                <div class="card-header">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-lightning-charge me-2 text-primary"></i>Management Hub</h6>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% if company.is_verified %}
+                        <a href="{{ url_for('company.create_internship') }}" class="list-group-item list-group-item-action py-3 d-flex align-items-center justify-content-between">
+                            <div>
+                                <strong class="d-block text-dark">Post an Opportunity</strong>
+                                <small class="text-muted">Publish a new internship listing</small>
+                            </div>
+                            <i class="bi bi-plus-circle text-primary fs-5"></i>
+                        </a>
+                    {% endif %}
+                    <a href="{{ url_for('company.manage_internships') }}" class="list-group-item list-group-item-action py-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <strong class="d-block text-dark">Manage All Listings</strong>
+                            <small class="text-muted">Edit descriptions, deadlines, status</small>
+                        </div>
+                        <i class="bi bi-briefcase text-primary fs-5"></i>
+                    </a>
+                    <a href="{{ url_for('company.applicants') }}" class="list-group-item list-group-item-action py-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <strong class="d-block text-dark">Review Candidate Pipeline</strong>
+                            <small class="text-muted">Evaluate applicants and resumes</small>
+                        </div>
+                        <i class="bi bi-people text-primary fs-5"></i>
+                    </a>
+                    <a href="{{ url_for('company.profile') }}" class="list-group-item list-group-item-action py-3 d-flex align-items-center justify-content-between">
+                        <div>
+                            <strong class="d-block text-dark">Organization Profile</strong>
+                            <small class="text-muted">Update logo, contact, compliance info</small>
+                        </div>
+                        <i class="bi bi-sliders text-primary fs-5"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Postings Feed -->
+        <div class="col-lg-8">
+            <div class="card border mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-briefcase me-2 text-primary"></i>Recent Internship Listings</h6>
+                    <a href="{{ url_for('company.manage_internships') }}" class="btn btn-sm btn-link text-decoration-none p-0">View All Listings &rarr;</a>
                 </div>
                 <div class="list-group list-group-flush">
                     {% for intern in recent_postings %}
@@ -118,17 +164,17 @@
                                     </a>
                                 </h6>
                                 {% if intern.status == 'active' %}
-                                    <span class="badge bg-success-subtle text-success border">Active</span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">Active</span>
                                 {% elif intern.status == 'flagged' %}
-                                    <span class="badge bg-danger-subtle text-danger border">Flagged (High Risk)</span>
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Flagged (High Risk)</span>
                                 {% elif intern.status == 'closed' %}
-                                    <span class="badge bg-secondary-subtle text-secondary border">Closed</span>
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Closed</span>
                                 {% endif %}
                             </div>
 
-                            <div class="d-flex gap-3 small text-muted mb-2">
+                            <div class="d-flex gap-3 small text-muted mb-2 flex-wrap">
                                 <span><i class="bi bi-people me-1"></i>{{ intern.applications.count() }} Applicants</span>
-                                <span><i class="bi bi-calendar3 me-1"></i>Due {{ intern.application_deadline.strftime('%b %d') }}</span>
+                                <span><i class="bi bi-calendar3 me-1"></i>Due {{ intern.application_deadline.strftime('%b %d, %Y') }}</span>
                                 {% if intern.scam_check %}
                                     <span class="fw-semibold {% if intern.scam_check.risk_level == 'High' %}text-danger{% elif intern.scam_check.risk_level == 'Medium' %}text-warning{% else %}text-success{% endif %}">
                                         <i class="bi bi-shield-check me-1"></i>Risk: {{ intern.scam_check.risk_level }} ({{ intern.scam_check.risk_score }}/100)
@@ -138,49 +184,27 @@
 
                             <div class="d-flex gap-2">
                                 <a href="{{ url_for('company.applicants', internship_id=intern.id) }}" class="btn btn-sm btn-outline-primary py-0">View Candidates</a>
-                                <a href="{{ url_for('company.edit_internship', internship_id=intern.id) }}" class="btn btn-sm btn-outline-secondary py-0">Edit</a>
+                                <a href="{{ url_for('company.edit_internship', internship_id=intern.id) }}" class="btn btn-sm btn-outline-secondary py-0">Edit Posting</a>
                             </div>
                         </div>
                     {% else %}
-                        <div class="text-center py-4 text-muted small">
-                            No internships created yet.<br>
-                            {% if company.is_verified %}
-                                <a href="{{ url_for('company.create_internship') }}" class="btn btn-sm btn-primary mt-2">Create First Posting</a>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Applicants -->
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="fw-bold mb-0"><i class="bi bi-people me-2 text-primary"></i>Recent Candidates</h6>
-                    <a href="{{ url_for('company.applicants') }}" class="btn btn-sm btn-link text-decoration-none">Review All &rarr;</a>
-                </div>
-                <div class="list-group list-group-flush">
-                    {% for app in recent_applications %}
-                        <div class="list-group-item p-3">
-                            <div class="d-flex justify-content-between align-items-start mb-1">
-                                <div>
-                                    <h6 class="fw-bold mb-0">{{ app.student.full_name }}</h6>
-                                    <small class="text-muted">{{ app.internship.title }} &bull; {{ app.applied_at.strftime('%b %d') }}</small>
-                                </div>
-                                <span class="badge {% if app.status == 'Applied' %}status-applied{% elif app.status == 'Under Review' %}status-under-review{% elif app.status == 'Selected' %}status-selected{% else %}status-rejected{% endif %}">
-                                    {{ app.status }}
-                                </span>
+                        <div class="p-4 text-center">
+                            <div class="empty-state py-3">
+                                <i class="bi bi-briefcase empty-state-icon"></i>
+                                <h6 class="empty-state-title">No Internships Posted Yet</h6>
+                                <p class="empty-state-text">
+                                    {% if company.is_verified %}
+                                        Create your first internship listing to start receiving student applications.
+                                    {% else %}
+                                        Your company profile is under administrative review before posting can be enabled.
+                                    {% endif %}
+                                </p>
+                                {% if company.is_verified %}
+                                    <a href="{{ url_for('company.create_internship') }}" class="btn btn-sm btn-primary">
+                                        Post New Internship
+                                    </a>
+                                {% endif %}
                             </div>
-
-                            <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
-                                <small class="text-muted"><i class="bi bi-mortarboard me-1"></i>{{ app.student.degree }} (CGPA: {{ app.student.cgpa or 'N/A' }})</small>
-                                <a href="{{ url_for('company.applicants', internship_id=app.internship_id) }}" class="btn btn-sm btn-outline-primary py-0">Review</a>
-                            </div>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-4 text-muted small">
-                            No applications received yet.
                         </div>
                     {% endfor %}
                 </div>
@@ -188,39 +212,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    // Initialize Bootstrap tooltips (for locked button when unverified)
-    document.addEventListener('DOMContentLoaded', function () {
-        var tooltipEls = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-        tooltipEls.forEach(function (el) {
-            new bootstrap.Tooltip(el);
-        });
-    });
-
-    // Post Internship button — loading state + double-click guard
-    var _postBtnClicked = false;
-    function handlePostBtnClick(e) {
-        if (_postBtnClicked) {
-            e.preventDefault();   // block second click
-            return false;
-        }
-        _postBtnClicked = true;
-        var content = document.getElementById('postBtnContent');
-        var loading = document.getElementById('postBtnLoading');
-        var btn     = document.getElementById('postInternshipBtn');
-        if (content) content.classList.add('d-none');
-        if (loading) loading.classList.remove('d-none');
-        if (btn)     btn.classList.add('disabled');
-        // Reset after 5s in case browser navigation is slow or fails
-        setTimeout(function () {
-            _postBtnClicked = false;
-            if (content) content.classList.remove('d-none');
-            if (loading) loading.classList.add('d-none');
-            if (btn)     btn.classList.remove('disabled');
-        }, 5000);
-    }
-</script>
 {% endblock %}
