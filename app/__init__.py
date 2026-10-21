@@ -13,7 +13,7 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
-    # Ensure upload directories exist
+    # Ensure upload directories exist safely
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     os.makedirs(app.config['RESUME_FOLDER'], exist_ok=True)
     os.makedirs(app.config['DOCS_FOLDER'], exist_ok=True)
@@ -108,6 +108,11 @@ def create_app(config_class=Config):
     def page_not_found(e):
         return render_template('base.html', error_code=404, error_title="Page Not Found",
                                error_msg="The page you requested does not exist or has been removed."), 404
+
+    @app.errorhandler(413)
+    def payload_too_large(e):
+        return render_template('base.html', error_code=413, error_title="File Too Large",
+                               error_msg="The uploaded file exceeds the allowed file size limit (8 MB). Please choose a smaller document."), 413
 
     @app.errorhandler(500)
     def internal_error(e):

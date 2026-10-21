@@ -6,6 +6,7 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from app.models import db, Internship, InternshipCategory, Application, Resume, Company, Notification, ScamCheck
 from app.decorators import role_required
+from app.utils import validate_resume_upload
 
 internships_bp = Blueprint('internships', __name__)
 
@@ -145,31 +146,27 @@ def apply(internship_id):
     selected_resume = None
 
     if new_resume_file and new_resume_file.filename:
-        from werkzeug.utils import secure_filename
-        filename = new_resume_file.filename
-        ext = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
-        if ext in current_app.config['ALLOWED_RESUME_EXTENSIONS']:
-            unique_name = f"resume_{student.id}_{uuid.uuid4().hex[:8]}.{ext}"
-            save_path = os.path.join(current_app.config['RESUME_FOLDER'], unique_name)
-
-            new_resume_file.seek(0, os.SEEK_END)
-            f_size = new_resume_file.tell()
-            new_resume_file.seek(0)
-
-            new_resume_file.save(save_path)
-            selected_resume = Resume(
-                student_id=student.id,
-                filename=unique_name,
-                original_name=secure_filename(filename),
-                file_path=save_path,
-                file_size=f_size,
-                is_primary=False
-            )
-            db.session.add(selected_resume)
-            db.session.flush()
-        else:
-            flash('Invalid resume file type. Allowed formats: PDF, DOCX.', 'danger')
+        is_valid, err_msg, meta = validate_resume_upload(new_resume_file)
+        if not is_valid:
+            flash(err_msg, 'danger')
             return redirect(url_for('internships.detail', internship_id=internship.id))
+
+        unique_name = f"resume_{student.id}_{uuid.uuid4().hex[:8]}.{meta['ext']}"
+        save_dir = current_app.config['RESUME_FOLDER']
+        os.makedirs(save_dir, exist_ok=True)
+        save_path = os.path.join(save_dir, unique_name)
+
+        new_resume_file.save(save_path)
+        selected_resume = Resume(
+            student_id=student.id,
+            filename=unique_name,
+            original_name=meta['original_name'],
+            file_path=f"instance/uploads/resumes/{unique_name}",
+            file_size=meta['file_size'],
+            is_primary=False
+        )
+        db.session.add(selected_resume)
+        db.session.flush()
 
     elif resume_id:
         selected_resume = Resume.query.filter_by(id=int(resume_id), student_id=student.id).first()

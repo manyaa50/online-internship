@@ -28,8 +28,10 @@ class Config:
     }
 
     # Uploads Configuration
+    # Profile pictures and logos remain public in app/static/uploads
     UPLOAD_FOLDER = os.path.join(BASE_DIR, 'app', 'static', 'uploads')
-    RESUME_FOLDER = os.path.join(UPLOAD_FOLDER, 'resumes')
+    # Private resume storage outside app/static
+    RESUME_FOLDER = os.path.join(BASE_DIR, 'instance', 'uploads', 'resumes')
     DOCS_FOLDER = os.path.join(UPLOAD_FOLDER, 'company_docs')
     MAX_CONTENT_LENGTH = 8 * 1024 * 1024  # 8 MB max upload
     ALLOWED_RESUME_EXTENSIONS = {'pdf', 'docx'}

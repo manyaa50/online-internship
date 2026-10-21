@@ -1,10 +1,11 @@
 import os
 import uuid
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, send_from_directory
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, send_from_directory, abort
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from app.models import db, StudentProfile, Resume, Application, Internship, Notification, Company
 from app.decorators import role_required
+from app.utils import validate_resume_upload
 
 student_bp = Blueprint('student', __name__)
 
@@ -29,21 +30,22 @@ def dashboard():
     selected = student.applications.filter_by(status='Selected').count()
     rejected = student.applications.filter_by(status='Rejected').count()
 
+    # Recent applications
     recent_apps = student.applications.order_by(Application.applied_at.desc()).limit(5).all()
 
-    # Recommended internships based on preferred domain or skills
+    # Recommended internships based on skills
+    skills_list = student.get_skills_list()
     recommended = []
-    if student.preferred_domain or student.skills:
-        query = Internship.query.filter(Internship.status == 'active')
-        if student.preferred_domain:
-            query = query.filter(
-                (Internship.title.ilike(f"%{student.preferred_domain}%")) |
-                (Internship.description.ilike(f"%{student.preferred_domain}%"))
-            )
-        recommended = query.order_by(Internship.created_at.desc()).limit(4).all()
-
-    if not recommended:
-        recommended = Internship.query.filter(Internship.status == 'active').order_by(Internship.created_at.desc()).limit(4).all()
+    if skills_list:
+        for intern in Internship.query.filter_by(status='active').limit(20).all():
+            req_skills = intern.get_skills_list()
+            matched = set(s.lower() for s in skills_list) & set(s.lower() for s in req_skills)
+            if matched:
+                recommended.append((intern, len(matched)))
+        recommended.sort(key=lambda x: x[1], reverse=True)
+        recommended = [r[0] for r in recommended[:4]]
+    else:
+        recommended = Internship.query.filter_by(status='active').order_by(Internship.created_at.desc()).limit(4).all()
 
     return render_template(
         'student/dashboard.html',
@@ -68,7 +70,7 @@ def profile():
         phone = request.form.get('phone', '').strip()
         college_name = request.form.get('college_name', '').strip()
         degree = request.form.get('degree', '').strip()
-        grad_year = request.form.get('graduation_year')
+        graduation_year = request.form.get('graduation_year')
         cgpa = request.form.get('cgpa')
         skills = request.form.get('skills', '').strip()
         bio = request.form.get('bio', '').strip()
@@ -79,14 +81,18 @@ def profile():
         preferred_duration = request.form.get('preferred_duration', '').strip()
 
         if not full_name or not phone:
-            flash('Full Name and Phone are required.', 'warning')
-            return render_template('student/profile.html', student=student)
+            flash('Full Name and Phone Number are required.', 'danger')
+            return redirect(url_for('student.profile'))
+
+        if not student:
+            student = StudentProfile(user_id=current_user.id)
+            db.session.add(student)
 
         student.full_name = full_name
         student.phone = phone
         student.college_name = college_name
         student.degree = degree
-        student.graduation_year = int(grad_year) if grad_year and grad_year.isdigit() else None
+        student.graduation_year = int(graduation_year) if graduation_year else None
         student.cgpa = float(cgpa) if cgpa else None
         student.skills = skills
         student.bio = bio
@@ -99,9 +105,9 @@ def profile():
         # Profile Picture Upload
         pic_file = request.files.get('profile_pic')
         if pic_file and pic_file.filename:
-            ext = pic_file.filename.rsplit('.', 1)[-1].lower()
-            if ext in current_app.config['ALLOWED_IMAGE_EXTENSIONS']:
-                pic_name = f"avatar_{student.id}_{uuid.uuid4().hex[:8]}.{ext}"
+            pic_ext = pic_file.filename.rsplit('.', 1)[-1].lower()
+            if pic_ext in current_app.config['ALLOWED_IMAGE_EXTENSIONS']:
+                pic_name = f"avatar_{student.id}_{uuid.uuid4().hex[:8]}.{pic_ext}"
                 pic_path = os.path.join(current_app.config['UPLOAD_FOLDER'], pic_name)
                 pic_file.save(pic_path)
                 student.profile_pic = pic_name
@@ -124,51 +130,40 @@ def upload_resume():
         return redirect(url_for('student.profile'))
 
     file = request.files['resume_file']
-    if file.filename == '':
-        flash('No file chosen.', 'warning')
+    is_valid, err_msg, meta = validate_resume_upload(file)
+    if not is_valid:
+        flash(err_msg, 'danger')
         return redirect(url_for('student.profile'))
 
-    if file and allowed_file(file.filename):
-        original_name = secure_filename(file.filename)
-        ext = original_name.rsplit('.', 1)[1].lower()
-        unique_filename = f"resume_{student.id}_{uuid.uuid4().hex[:8]}.{ext}"
-        save_path = os.path.join(current_app.config['RESUME_FOLDER'], unique_filename)
+    unique_filename = f"resume_{student.id}_{uuid.uuid4().hex[:8]}.{meta['ext']}"
+    save_dir = current_app.config['RESUME_FOLDER']
+    os.makedirs(save_dir, exist_ok=True)
+    save_path = os.path.join(save_dir, unique_filename)
 
-        file.seek(0, os.SEEK_END)
-        file_size = file.tell()
-        file.seek(0)
+    file.save(save_path)
 
-        if file_size > current_app.config['MAX_CONTENT_LENGTH']:
-            flash('File size exceeds the 8MB limit.', 'danger')
-            return redirect(url_for('student.profile'))
-
-        file.save(save_path)
-
-        # If it's the first resume or marked primary, reset others
-        is_first = student.resumes.count() == 0
-        if is_first:
-            make_primary = True
-        else:
-            make_primary = bool(request.form.get('is_primary'))
-
-        if make_primary:
-            Resume.query.filter_by(student_id=student.id).update({'is_primary': False})
-
-        new_resume = Resume(
-            student_id=student.id,
-            filename=unique_filename,
-            original_name=original_name,
-            file_path=save_path,
-            file_size=file_size,
-            is_primary=make_primary
-        )
-        db.session.add(new_resume)
-        db.session.commit()
-
-        flash('Resume uploaded successfully!', 'success')
+    # If it's the first resume or marked primary, reset others
+    is_first = student.resumes.count() == 0
+    if is_first:
+        make_primary = True
     else:
-        flash('Invalid file format. Only PDF and DOCX files are permitted.', 'danger')
+        make_primary = bool(request.form.get('is_primary'))
 
+    if make_primary:
+        Resume.query.filter_by(student_id=student.id).update({'is_primary': False})
+
+    new_resume = Resume(
+        student_id=student.id,
+        filename=unique_filename,
+        original_name=meta['original_name'],
+        file_path=f"instance/uploads/resumes/{unique_filename}",
+        file_size=meta['file_size'],
+        is_primary=make_primary
+    )
+    db.session.add(new_resume)
+    db.session.commit()
+
+    flash('Resume uploaded successfully!', 'success')
     return redirect(url_for('student.profile'))
 
 
@@ -196,8 +191,13 @@ def download_resume(resume_id):
         flash('You are not authorized to download this resume.', 'danger')
         return redirect(url_for('index'))
 
+    resume_folder = current_app.config['RESUME_FOLDER']
+    file_path = os.path.join(resume_folder, resume.filename)
+    if not os.path.exists(file_path):
+        abort(404)
+
     return send_from_directory(
-        current_app.config['RESUME_FOLDER'],
+        resume_folder,
         resume.filename,
         as_attachment=True,
         download_name=resume.original_name
@@ -240,5 +240,5 @@ def applications():
     if status_filter:
         query = query.filter_by(status=status_filter)
 
-    all_apps = query.order_by(Application.applied_at.desc()).all()
-    return render_template('student/applications.html', applications=all_apps, active_status=status_filter)
+    apps = query.order_by(Application.applied_at.desc()).all()
+    return render_template('student/applications.html', applications=apps, current_status=status_filter)

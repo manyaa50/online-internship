@@ -185,7 +185,7 @@ def seed_database():
             student_id=student.id,
             filename="sample_bca_resume.pdf",
             original_name="Aarav_Sharma_BCA_Resume.pdf",
-            file_path="app/static/uploads/resumes/sample_bca_resume.pdf",
+            file_path="instance/uploads/resumes/sample_bca_resume.pdf",
             file_size=245000,
             is_primary=True
         )
